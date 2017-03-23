@@ -1,2 +1,2 @@
 # goSpace
-Programming with Spaces in Go
+Work in progres...
