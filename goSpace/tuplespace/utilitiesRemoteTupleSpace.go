@@ -3,10 +3,10 @@ package tuplespace
 import (
 	"encoding/gob"
 	"fmt"
+	"goSpace/goSpace/constants"
+	"goSpace/goSpace/topology"
 	"net"
 	"reflect"
-	"svn/bachelorProject/tupleSpaceFramework/constants"
-	"svn/bachelorProject/tupleSpaceFramework/topology"
 )
 
 // Put will open a TCP connection to the PointToPoint and send the message,

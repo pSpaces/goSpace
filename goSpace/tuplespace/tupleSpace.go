@@ -3,12 +3,12 @@ package tuplespace
 import (
 	"encoding/gob"
 	"fmt"
+	"goSpace/goSpace/constants"
+	"goSpace/goSpace/topology"
 	"log"
 	"net"
 	"strconv"
 	"strings"
-	"svn/bachelorProject/tupleSpaceFramework/constants"
-	"svn/bachelorProject/tupleSpaceFramework/topology"
 	"sync"
 )
 

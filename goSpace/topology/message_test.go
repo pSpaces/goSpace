@@ -1,8 +1,8 @@
 package topology
 
 import (
+	"goSpace/goSpace/constants"
 	"reflect"
-	"svn/bachelorProject/tupleSpaceFramework/constants"
 	"testing"
 )
 

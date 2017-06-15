@@ -2,10 +2,10 @@ package main
 
 import (
 	"fmt"
+	"goSpace/goSpace/topology"
+	"goSpace/goSpace/tuplespace"
 	"os"
 	"strconv"
-	"svn/bachelorProject/tupleSpaceFramework/topology"
-	"svn/bachelorProject/tupleSpaceFramework/tuplespace"
 	"time"
 )
 

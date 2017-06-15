@@ -1,6 +1,6 @@
 package tuplespace
 
-import "svn/bachelorProject/tupleSpaceFramework/constants"
+import "goSpace/goSpace/constants"
 
 // WaitingClient is used as a structure for clients who performed an
 // unsuccessful Get or Query operation, in the sense that it didn't initially

@@ -1,7 +1,7 @@
 package tuplespace
 
 import (
-	"copy/constants"
+	"goSpace/goSpace/constants"
 	"reflect"
 	"strings"
 	"testing"
