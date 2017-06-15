@@ -2,6 +2,9 @@ package main
 
 import (
 	"fmt"
+	"math/rand"
+	"os"
+	"strconv"
 	"svn/bachelorProject/tupleSpaceFramework/topology"
 	"svn/bachelorProject/tupleSpaceFramework/tuplespace"
 	"time"
@@ -12,13 +15,26 @@ func main() {
 	ts := tuplespace.CreateTupleSpace(port)
 	fmt.Println(ts)
 	ptp := topology.CreatePointToPoint("me", "localhost", port)
-	n := 2
+
+	n, err := strconv.Atoi(os.Args[1])
+	if err != nil {
+		// handle error
+		fmt.Println(err)
+		os.Exit(2)
+	}
+	t, err := strconv.Atoi(os.Args[2])
+	if err != nil {
+		// handle error
+		fmt.Println(err)
+		os.Exit(2)
+	}
+
 	placeForks(ptp, n)
 	go philosopher(ptp, 0, 0, n-1)
 	for i := 1; i < n; i++ {
 		go philosopher(ptp, i, i-1, i)
 	}
-	time.Sleep(7200 * time.Second)
+	time.Sleep(time.Duration(t) * time.Second)
 }
 
 func placeForks(ptp topology.PointToPoint, n int) {
@@ -32,8 +48,8 @@ func philosopher(ptp topology.PointToPoint, n int, fork1 int, fork2 int) {
 	for {
 		fmt.Printf("Philosopher %d is thinking\n", n)
 		//why does this not work?
-		//time.Sleep(rand.Intn(2000) * time.Millisecond)
-		time.Sleep(1000 * time.Millisecond)
+		time.Sleep(time.Duration(rand.Intn(2000)) * time.Millisecond)
+		//time.Sleep(1000 * time.Millisecond)
 		fmt.Printf("Philosopher %d is hungry\n", n)
 		tuplespace.Get(ptp, "fork", min(fork1, fork2))
 		tuplespace.Get(ptp, "fork", max(fork1, fork2))
