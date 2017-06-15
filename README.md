@@ -11,6 +11,14 @@ To import the goSpace into your project, clone the repository and place it in th
 ```terminal
 GOPATH/src/
 ```
+Now that the repository has been placed correctly, we can start using the actual framework. This is done by importing the `tuplespace` and `topology` packages into your project. This will like
+
+```go
+import (
+      "goSpace/goSpace/tuplespace"
+      "goSpace/goSpace/topology"
+)
+```
 
 ## Run test examples
 
