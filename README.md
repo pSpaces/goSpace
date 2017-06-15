@@ -50,6 +50,26 @@ What you see is
 * The first line is the tuple space that consists of one book being "Of Mice and Men" at the price of 200.
 * The second line is right the after the customer performed a `Query` to check the price of the book he wants.
 * The third line is after the customer has placed a payment for the book with a `Put`.
-* The forth line is after the cashier has received the payment with a `Get`. He then checked if the price that the customer paid, matches the price of the book by a `Query`. As the price mathed, he removed the book from the store with a `Get and handed it to the customer.
+* The forth line is after the cashier has received the payment with a `Get`. He then checked if the price that the customer paid, matches the price of the book by a `Query`. As the price mathed, he removed the book from the store with a `Get` and handed it to the customer.
 
 ## How to perform tuple space operations.
+The framework contains the following tuple space operation and the syntax of them looks as follows
+```go
+Put(ptp, x1, x2, ..., xn)
+PutP(ptp, x1, x2, ..., xn)
+Get(ptp, x1, x2, ..., xn)
+GetP(ptp, x1, x2, ..., xn)
+GetAll(ptp)
+Query(ptp, x1, x2, ..., xn)
+QueryP(ptp, x1, x2, ..., xn)
+QueryAll(ptp)
+```
+Where `ptp` is a pointToPoint structure and `x1, x2, ..., xn` are values.
+
+Pattern matching can be achieved by passing a pointer to the variable, this by can be done by adding a `&` infront of the variable. This is used in the `bookstore` example and looks a follows
+```go
+var i int
+book := "Of Mice and Men"
+tuplespace.Query(ptp, book, &i)
+```
+This is used to look up the price of the book "Of Mice and Men". After the `Query` operation the value of `i` is 200.
