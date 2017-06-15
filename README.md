@@ -21,17 +21,24 @@ import (
 ```
 
 ## Run test examples
+
+### Install the examples
 The `goSpace/examples` folder contains a few examples.
 
 Let's start by looking at the `bookstore` example. To run this go to `*/goSpace/examples/bookstore` and run the following Go command to install the example, as was described in the video
 ```terminal
 go install
 ```
+
+### Run the examples
 This will create an executable that is named as the folder where the `main.go` is located. For the `bookstore` example the `go install` command will create an executable called `bookstore`. The example can now be run by the following command regardless of the location on the system.
 
 ```terminal
 bookstore
 ```
+The remaining examples are installed and run in the same way.
+
+### Running the bookstore example
 If Go and the framework has been set up and imported correctly you should see the following being printed
 ```terminal
 &{0xc420010d60 0xc42000cb10 [{[Of Mice and Men 200]}] :8080 []}
