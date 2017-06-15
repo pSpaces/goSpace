@@ -90,6 +90,7 @@ func getAndQuery(tempFields []interface{}, ptp topology.PointToPoint, operation 
 	// Error check for establishing connection.
 	if errDial != nil {
 		fmt.Println("ErrDial:", errDial)
+		return
 	}
 
 	// Make sure the connection closes when method returns.
@@ -136,6 +137,7 @@ func getPAndQueryP(tempFields []interface{}, ptp topology.PointToPoint, operatio
 	// Error check for establishing connection.
 	if errDial != nil {
 		fmt.Println("ErrDial:", errDial)
+		return false
 	}
 
 	// Make sure the connection closes when method returns.
@@ -188,6 +190,7 @@ func getAllAndQueryAll(ptp topology.PointToPoint, operation string) []Tuple {
 	// Error check for establishing connection.
 	if errDial != nil {
 		fmt.Println("ErrDial:", errDial)
+		return []Tuple{}
 	}
 
 	// Make sure the connection closes when method returns.
