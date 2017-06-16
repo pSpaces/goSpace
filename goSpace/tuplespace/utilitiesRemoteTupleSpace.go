@@ -72,25 +72,25 @@ func PutP(t Tuple, ptp topology.PointToPoint) {
 // Get will open a TCP connection to the PointToPoint and send the message,
 // which includes the type of operation and template specified by the user.
 // The method returns a tuple that matches the template.
-func Get(ptp topology.PointToPoint, tempFields ...interface{}) {
-	getAndQuery(tempFields, ptp, constants.GetRequest)
+func Get(ptp topology.PointToPoint, tempFields ...interface{}) bool {
+	return getAndQuery(tempFields, ptp, constants.GetRequest)
 }
 
 // Query will open a TCP connection to the PointToPoint and send the message,
 // which includes the type of operation and template specified by the user.
 // The method returns a tuple that matches the template.
-func Query(ptp topology.PointToPoint, tempFields ...interface{}) {
-	getAndQuery(tempFields, ptp, constants.QueryRequest)
+func Query(ptp topology.PointToPoint, tempFields ...interface{}) bool {
+	return getAndQuery(tempFields, ptp, constants.QueryRequest)
 }
 
-func getAndQuery(tempFields []interface{}, ptp topology.PointToPoint, operation string) {
+func getAndQuery(tempFields []interface{}, ptp topology.PointToPoint, operation string) bool {
 	t := CreateTemplate(tempFields)
 	conn, errDial := establishConnection(ptp)
 
 	// Error check for establishing connection.
 	if errDial != nil {
 		fmt.Println("ErrDial:", errDial)
-		return
+		return false
 	}
 
 	// Make sure the connection closes when method returns.
@@ -101,6 +101,7 @@ func getAndQuery(tempFields []interface{}, ptp topology.PointToPoint, operation 
 	// Error check for sending message.
 	if errSendMessage != nil {
 		fmt.Println("ErrSendMessage:", errSendMessage)
+		return false
 	}
 
 	tuple, errReceiveMessage := receiveMessageTuple(conn)
@@ -108,10 +109,11 @@ func getAndQuery(tempFields []interface{}, ptp topology.PointToPoint, operation 
 	// Error check for receiving response.
 	if errReceiveMessage != nil {
 		fmt.Println("ErrReceiveMessage:", errReceiveMessage)
+		return false
 	}
 	WriteTupleToVariables(tuple, tempFields)
 	// Return result.
-	return
+	return true
 }
 
 // GetP will open a TCP connection to the PointToPoint and send the message,
@@ -148,6 +150,7 @@ func getPAndQueryP(tempFields []interface{}, ptp topology.PointToPoint, operatio
 	// Error check for sending message.
 	if errSendMessage != nil {
 		fmt.Println("ErrSendMessage:", errSendMessage)
+		return false
 	}
 
 	b, tuple, errReceiveMessage := receiveMessageBoolAndTuple(conn)
@@ -155,6 +158,7 @@ func getPAndQueryP(tempFields []interface{}, ptp topology.PointToPoint, operatio
 	// Error check for receiving response.
 	if errReceiveMessage != nil {
 		fmt.Println("ErrReceiveMessage:", errReceiveMessage)
+		return false
 	}
 	if b {
 		WriteTupleToVariables(tuple, tempFields)
@@ -204,6 +208,7 @@ func getAllAndQueryAll(ptp topology.PointToPoint, operation string) []Tuple {
 	// Error check for sending message.
 	if errSendMessage != nil {
 		fmt.Println("ErrSendMessage:", errSendMessage)
+		return []Tuple{}
 	}
 
 	tuples, errReceiveMessage := receiveMessageTupleList(conn)
@@ -211,6 +216,7 @@ func getAllAndQueryAll(ptp topology.PointToPoint, operation string) []Tuple {
 	// Error check for receiving response.
 	if errReceiveMessage != nil {
 		fmt.Println("ErrReceiveMessage:", errReceiveMessage)
+		return []Tuple{}
 	}
 
 	// Return result.
