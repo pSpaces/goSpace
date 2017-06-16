@@ -31,7 +31,7 @@ func (ptp *PointToPoint) ToString() string {
 	return s
 }
 
-// GetName will return the address of the PointToPoint.
+// GetAddress will return the address of the PointToPoint.
 func (ptp *PointToPoint) GetAddress() string {
 	return ptp.address
 }

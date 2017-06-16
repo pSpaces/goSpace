@@ -6,47 +6,61 @@ import (
 	"testing"
 )
 
-var testMessage Message
+// Test to see if Message is creating correct.
+func TestCreateMessage(t *testing.T) {
+	// Setup
+	testMessage := createTestMessage()
 
-func init() {
-	testMessage = CreateMessage(constants.PutRequest, []interface{}{"3", true, 4})
-}
+	// Create Message manually.
+	actualOperation := constants.GetRequest
+	actualT := []interface{}{"3", true, 4}
+	actualMessage := Message{actualOperation, actualT}
 
-// TestMessageCreateMessage will see if the method for creating the message does
-// it as intended.
-func TestMessageCreateMessage(t *testing.T) {
-	messageManual := Message{Operation: constants.PutRequest, T: []interface{}{"3", true, 4}}
+	// Test that the two templates are equal.
+	messagesEqual := reflect.DeepEqual(testMessage, actualMessage)
 
-	// Check equality between messages.
-	if !reflect.DeepEqual(testMessage, messageManual) {
-		t.Errorf("The method generated message %q, didn't look as expected: %q", testMessage, messageManual)
+	if !messagesEqual {
+		t.Errorf("CreateMessage() gave %+v, should be %+v", testMessage, actualMessage)
 	}
 }
 
-// TestMessageGetOperation will make sure the right part of the message is
-// returned, the operation of the message.
-func TestMessageGetOperation(t *testing.T) {
-	// Create operation string for comparison.
-	messageManualOperation := constants.PutRequest
+// Test to see if GetOperation returns the correct operation.
+func TestGetOperation(t *testing.T) {
+	// Setup
+	testMessage := createTestMessage()
+
+	actualOperation := constants.GetRequest
 
 	// Get the operation of the message with method.
-	messageOperation := testMessage.GetOperation()
+	testOperation := testMessage.GetOperation()
 
-	if !reflect.DeepEqual(messageManualOperation, messageOperation) {
-		t.Errorf("The operation from the message %q, didn't look as expected: %q", messageOperation, messageManualOperation)
+	operationsEqual := reflect.DeepEqual(testOperation, actualOperation)
+
+	if !operationsEqual {
+		t.Errorf("GetOperation() on message: %+v == %v, should be %v", testMessage, testOperation, actualOperation)
 	}
 }
 
-// TestMessageGetBody will make sure the right part of the message is
-// returned, the body of the message.
-func TestMessageBodyOperation(t *testing.T) {
-	// Create body for comparison.
-	messageManualBody := []interface{}{"3", true, 4}
+// Test to see if GetBody returns the correct body.
+func TestGetBody(t *testing.T) {
+	// Setup
+	testMessage := createTestMessage()
 
-	// Get the body of the message with method.
-	messageBody := testMessage.GetBody()
+	actualBody := []interface{}{"3", true, 4}
 
-	if !reflect.DeepEqual(messageManualBody, messageBody) {
-		t.Errorf("The body from the message %q, didn't look as expected: %q", messageBody, messageManualBody)
+	// Get the operation of the message with method.
+	testBody := testMessage.GetBody()
+
+	bodiesEqual := reflect.DeepEqual(testBody, actualBody)
+
+	if !bodiesEqual {
+		t.Errorf("GetBody() on message: %+v == %v, should be %v", testMessage, testBody, actualBody)
 	}
+}
+
+func createTestMessage() Message {
+	testOperation := constants.GetRequest
+	testT := []interface{}{"3", true, 4}
+
+	return CreateMessage(testOperation, testT)
 }
