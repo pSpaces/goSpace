@@ -1,79 +1,81 @@
 package tuplespace
 
-/*
-var testTupleSpace *TupleSpace
+import (
+	"reflect"
+	"sync"
+	"testing"
+)
 
-func init() {
-	testTupleSpace = CreateTupleSpace(9080)
-}
-
-// TestCreateTupleSpace will test that the tuple space is initialised as
-// intended.
 func TestCreateTupleSpace(t *testing.T) {
-	tuplespaceManual := TupleSpace{muTuples: new(sync.RWMutex), muWaitingClients: new(sync.RWMutex), port: ":8081"}
+	// Setup
+	testTupleSpace := createTestTupleSpace(9000)
 
-	// Check equality between the mutex for tuples[].
-	if !reflect.DeepEqual(testTupleSpace.muTuples, tuplespaceManual.muTuples) {
-		t.Errorf("The mutex of %+v looks like %q and should have looked like the mutex of %+v, which looks like %q.", *testTupleSpace, testTupleSpace.muTuples, tuplespaceManual, tuplespaceManual.muTuples)
+	// Manually create tuple space
+	actualMuTuple := new(sync.RWMutex)
+	actualMuWaitingClients := new(sync.Mutex)
+	actualTuples := []Tuple{}
+	actualPort := ":9000"
+	actualWaitingClients := []WaitingClient{}
+	actualTupleSpace := &TupleSpace{muTuples: actualMuTuple, muWaitingClients: actualMuWaitingClients, tuples: actualTuples, port: actualPort, waitingClients: actualWaitingClients}
+
+	// Test that the two templates are equal.
+	tupleSpacesEqual := true
+	if reflect.TypeOf(testTupleSpace.muTuples) != reflect.TypeOf(actualTupleSpace.muTuples) {
+		tupleSpacesEqual = false
+	} else if reflect.TypeOf(testTupleSpace.muWaitingClients) != reflect.TypeOf(actualTupleSpace.muWaitingClients) {
+		tupleSpacesEqual = false
+	} else if reflect.TypeOf(testTupleSpace.tuples) != reflect.TypeOf(actualTupleSpace.tuples) && len(testTupleSpace.tuples) == 0 && len(actualTupleSpace.tuples) == 0 {
+		tupleSpacesEqual = false
+	} else if !reflect.DeepEqual(testTupleSpace.port, actualTupleSpace.port) {
+		tupleSpacesEqual = false
+	} else if reflect.TypeOf(testTupleSpace.waitingClients) != reflect.TypeOf(actualTupleSpace.waitingClients) && len(testTupleSpace.waitingClients) == 0 && len(actualTupleSpace.waitingClients) == 0 {
+		tupleSpacesEqual = false
 	}
 
-	// Check equality between the mutex for waitingClients[].
-	if !reflect.DeepEqual(testTupleSpace.muWaitingClients, tuplespaceManual.muWaitingClients) {
-		t.Errorf("The mutex of %+v looks like %q and should have looked like the mutex of %+v, which looks like %q.", *testTupleSpace, testTupleSpace.muWaitingClients, tuplespaceManual, tuplespaceManual.muWaitingClients)
-	}
-
-	// Check equality between the data structures for storing tuples.
-	if !reflect.DeepEqual(testTupleSpace.tuples, tuplespaceManual.tuples) {
-		t.Errorf("The data structure to store tuples of %+v looks like %q and should have looked like the data structure of %+v, which looks like %q.", *testTupleSpace, testTupleSpace.tuples, tuplespaceManual, tuplespaceManual.tuples)
-	}
-
-	// Check equality between the data structures for storing waiting clients.
-	if !reflect.DeepEqual(testTupleSpace.waitingClients, tuplespaceManual.waitingClients) {
-		t.Errorf("The data structure to store tuples of %+v looks like %+v and should have looked like the data structure of %+v, which looks like %+v.", *testTupleSpace, testTupleSpace.waitingClients, tuplespaceManual, tuplespaceManual.waitingClients)
-	}
-
-	// Check port number is of right format.
-	if !reflect.DeepEqual(testTupleSpace.port, ":9080") {
-		t.Errorf("The port number of %+v looks like %q and should have looked like the :9080", *testTupleSpace, testTupleSpace.port)
-	}
-}
-
-// TestTupleSpaceSize will make sure Size() returns the right size of the data
-// structure for tuples. The size is defined as the amount of tuples.
-func TestTupleSpaceSize(t *testing.T) {
-	tuplesSizeExpected := 0
-	tuplesSize := testTupleSpace.Size()
-
-	// Check the two sizes are equal.
-	if !reflect.DeepEqual(tuplesSize, tuplesSizeExpected) {
-		t.Errorf("The size of tuples was %d but was expected to have the size %d", tuplesSize, tuplesSizeExpected)
+	if !tupleSpacesEqual {
+		t.Errorf("CreateTupleSpace() gave %+v, should be %+v", testTupleSpace, actualTupleSpace)
 	}
 }
 
-// TestAddNewClient will make sure the right client is added to the data
-// structure correctly.
+func TestSize(t *testing.T) {
+	// Setup
+	testTupleSpace := createTestTupleSpace(9001)
+
+	actualSize := 0
+
+	testSize := testTupleSpace.Size()
+
+	sizesEqual := testSize == actualSize
+
+	if !sizesEqual {
+		t.Errorf("Size() on tuple space: %+v == %v, should be %v", testTupleSpace, testSize, actualSize)
+	}
+}
+
 func TestAddNewClient(t *testing.T) {
-	// Initially check there are no waiting clients by securing the size of it
-	// is 0.
-	if len(testTupleSpace.waitingClients) != 0 {
-		t.Errorf("The size of %+v was %d but was expected to have the size 0.", testTupleSpace.waitingClients, len(testTupleSpace.waitingClients))
-	}
+	// Setup
+	testTupleSpace := createTestTupleSpace(9002)
 
 	// Make a client.
-	temp := CreateTemplate("test field")
+	temp := CreateTemplate([]interface{}{"Field 1"})
 	response := make(chan *Tuple)
 	remove := false // QueryRequest
-	client := CreateWaitingClient(temp, response, remove)
+	actualWaitingClient := CreateWaitingClient(temp, response, remove)
 
 	// Add client to the data structure with method.
-	testTupleSpace.addNewClient(client)
+	testTupleSpace.addNewClient(actualWaitingClient)
 
 	// Check that the size of the waitingClients is 1.
 	if len(testTupleSpace.waitingClients) != 1 {
-		t.Errorf("The size of %+v was %d but was expected to have the size 1 after the client %+v was added to an empty data structure", testTupleSpace.waitingClients, len(testTupleSpace.waitingClients), client)
+		t.Errorf("The size of %+v was %d but was expected to have the size 1 after the client %+v was added to an empty data structure", testTupleSpace.waitingClients, len(testTupleSpace.waitingClients), actualWaitingClient)
 	}
 }
 
+func createTestTupleSpace(testPort int) *TupleSpace {
+	return CreateTupleSpace(testPort)
+}
+
+/*
 func TestRemoveClientAt(t *testing.T) {
 	// Initially check there are one waiting client from previous test by
 	// securing the size of it is 1.

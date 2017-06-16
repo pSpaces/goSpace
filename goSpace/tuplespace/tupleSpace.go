@@ -248,7 +248,6 @@ func (ts *TupleSpace) listen() {
 
 		// Error check for accepting connection.
 		if errAccept != nil {
-			//conn.Close()
 			continue
 		}
 
