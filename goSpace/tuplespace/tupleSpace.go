@@ -184,20 +184,20 @@ func (ts *TupleSpace) findTuple(temp Template, remove bool) *Tuple {
 }
 
 // getAll will return and remove every tuple from the tuple space.
-func (ts *TupleSpace) getAll(response chan<- []Tuple) {
-	ts.findAllTuples(response, true)
+func (ts *TupleSpace) getAll(temp Template, response chan<- []Tuple) {
+	ts.findAllTuples(temp, response, true)
 }
 
 // queryAll will return every tuple from the tuple space.
-func (ts *TupleSpace) queryAll(response chan<- []Tuple) {
-	ts.findAllTuples(response, false)
+func (ts *TupleSpace) queryAll(temp Template, response chan<- []Tuple) {
+	ts.findAllTuples(temp, response, false)
 }
 
 // findAllTuples will make a copy a the tuples in the tuple space to a list.
 // The boolean remove will denote if the tuple should be removed or not from
 // the tuple space.
 // NOTE: an empty list of tuples is a legal return value.
-func (ts *TupleSpace) findAllTuples(response chan<- []Tuple, remove bool) {
+func (ts *TupleSpace) findAllTuples(temp Template, response chan<- []Tuple, remove bool) {
 	if remove {
 		ts.muTuples.Lock()
 		defer ts.muTuples.Unlock()
@@ -205,10 +205,21 @@ func (ts *TupleSpace) findAllTuples(response chan<- []Tuple, remove bool) {
 		ts.muTuples.RLock()
 		defer ts.muTuples.RUnlock()
 	}
-
-	tuples := ts.tuples
-	if remove {
-		ts.clearTupleSpace()
+	var tuples []Tuple
+	var removeIndex []int
+	//goes through tuple space and collects matching tuples
+	for i, t := range ts.tuples {
+		if t.match(temp) {
+			if remove {
+				removeIndex = append(removeIndex, i)
+				//ts.removeTupleAt(i)
+			}
+			tuples = append(tuples, t)
+		}
+	}
+	//removes tuples from tuple space if its a get operations
+	for i := len(removeIndex) - 1; i >= 0; i-- {
+		ts.removeTupleAt(removeIndex[i])
 	}
 
 	response <- tuples
@@ -295,7 +306,8 @@ func (ts *TupleSpace) handle(conn net.Conn) {
 		ts.handleGetP(conn, template)
 	case constants.GetAllRequest:
 		// Body of message must be empty.
-		ts.handleGetAll(conn)
+		template := message.GetBody().(Template)
+		ts.handleGetAll(conn, template)
 	case constants.QueryRequest:
 		// Body of message must be template.
 		template := message.GetBody().(Template)
@@ -306,7 +318,8 @@ func (ts *TupleSpace) handle(conn net.Conn) {
 		ts.handleQueryP(conn, template)
 	case constants.QueryAllRequest:
 		// Body of message must be empty.
-		ts.handleQueryAll(conn)
+		template := message.GetBody().(Template)
+		ts.handleQueryAll(conn, template)
 	default:
 		fmt.Println("Can't handle operation. Contact client at ", conn.RemoteAddr())
 		return
@@ -394,11 +407,11 @@ func (ts *TupleSpace) handleGetP(conn net.Conn, temp Template) {
 
 // GetAll is a nonblocking method that will remove all tuples from the tuple
 // space and send them in a list through the connection conn.
-func (ts *TupleSpace) handleGetAll(conn net.Conn) {
+func (ts *TupleSpace) handleGetAll(conn net.Conn, temp Template) {
 	defer handleRecover()
 
 	readChannel := make(chan []Tuple)
-	go ts.getAll(readChannel)
+	go ts.getAll(temp, readChannel)
 	tupleList := <-readChannel
 
 	enc := gob.NewEncoder(conn)
@@ -462,11 +475,11 @@ func (ts *TupleSpace) handleQueryP(conn net.Conn, temp Template) {
 
 // QueryAll is a blocking method that will return all tuples from the tuple
 // space in a list.
-func (ts *TupleSpace) handleQueryAll(conn net.Conn) {
+func (ts *TupleSpace) handleQueryAll(conn net.Conn, temp Template) {
 	defer handleRecover()
 
 	readChannel := make(chan []Tuple)
-	go ts.queryAll(readChannel)
+	go ts.queryAll(temp, readChannel)
 	tupleList := <-readChannel
 
 	enc := gob.NewEncoder(conn)

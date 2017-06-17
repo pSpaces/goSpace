@@ -174,8 +174,8 @@ func getPAndQueryP(tempFields []interface{}, ptp topology.PointToPoint, operatio
 // space.
 // NOTE: tuples is allowed to be an empty list, implying the tuple space was
 // empty.
-func GetAll(ptp topology.PointToPoint) []Tuple {
-	return getAllAndQueryAll(ptp, constants.GetAllRequest)
+func GetAll(ptp topology.PointToPoint, tempFields ...interface{}) []Tuple {
+	return getAllAndQueryAll(tempFields, ptp, constants.GetAllRequest)
 }
 
 // QueryAll will open a TCP connection to the PointToPoint and send the message,
@@ -184,11 +184,12 @@ func GetAll(ptp topology.PointToPoint) []Tuple {
 // space.
 // NOTE: tuples is allowed to be an empty list, implying the tuple space was
 // empty.
-func QueryAll(ptp topology.PointToPoint) []Tuple {
-	return getAllAndQueryAll(ptp, constants.QueryAllRequest)
+func QueryAll(ptp topology.PointToPoint, tempFields ...interface{}) []Tuple {
+	return getAllAndQueryAll(tempFields, ptp, constants.QueryAllRequest)
 }
 
-func getAllAndQueryAll(ptp topology.PointToPoint, operation string) []Tuple {
+func getAllAndQueryAll(tempFields []interface{}, ptp topology.PointToPoint, operation string) []Tuple {
+	t := CreateTemplate(tempFields)
 	conn, errDial := establishConnection(ptp)
 
 	// Error check for establishing connection.
@@ -202,7 +203,6 @@ func getAllAndQueryAll(ptp topology.PointToPoint, operation string) []Tuple {
 
 	// Initiallise dummy tuple.
 	// TODO: Get rid of the dummy tuple.
-	t := Tuple{}
 	errSendMessage := sendMessage(conn, operation, t)
 
 	// Error check for sending message.
