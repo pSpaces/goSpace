@@ -59,10 +59,10 @@ Put(ptp, x1, x2, ..., xn)
 PutP(ptp, x1, x2, ..., xn)
 Get(ptp, x1, x2, ..., xn)
 GetP(ptp, x1, x2, ..., xn)
-GetAll(ptp)
+GetAll(ptp, x1, x2, ..., xn)
 Query(ptp, x1, x2, ..., xn)
 QueryP(ptp, x1, x2, ..., xn)
-QueryAll(ptp)
+QueryAll(ptp, x1, x2, ..., xn)
 ```
 Where `ptp` is a pointToPoint structure and `x1, x2, ..., xn` are values.
 
