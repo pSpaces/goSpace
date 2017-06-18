@@ -10,6 +10,19 @@ import (
 func main() {
 	ts := tuplespace.CreateTupleSpace(8080)
 	ptp := topology.CreatePointToPoint("Bookstore", "localhost", 8080)
+	/*
+		tuplespace.Put(ptp, 2, 2)
+		tuplespace.Put(ptp, 2, 2)
+		tuplespace.Put(ptp, 2, 3)
+		tuplespace.Put(ptp, 2, 3)
+		tuplespace.Put(ptp, 2, false)
+		fmt.Println(ts)
+		var i int
+		fmt.Println(tuplespace.QueryAll(ptp, 2, 2))
+		fmt.Println(tuplespace.GetAll(ptp, 2, &i))
+		fmt.Println(tuplespace.QueryAll(ptp, 2, 2))
+		fmt.Println(ts)
+	*/
 	addBooks(ptp)
 	fmt.Println(ts)
 	go cashier(ptp)
