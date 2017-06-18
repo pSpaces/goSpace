@@ -70,7 +70,6 @@ func (ts *TupleSpace) putP(t *Tuple) {
 			// tuple is send to the response channel of the waiting client.
 			clientResponse := waitingClient.GetResponseChan()
 			clientResponse <- t
-
 			// Check if the client who was waiting for the tuple performed a get
 			// or query operation.
 			ts.removeClientAt(i)

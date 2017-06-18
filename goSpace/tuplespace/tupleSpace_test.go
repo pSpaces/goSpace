@@ -71,50 +71,62 @@ func TestAddNewClient(t *testing.T) {
 	}
 }
 
+func TestRemoveClientAt(t *testing.T) {
+	// Setup
+	testTupleSpace := createTestTupleSpace(9003)
+	actualWaitingClient := CreateWaitingClient(CreateTemplate([]interface{}{"Field 1"}), make(chan *Tuple), false)
+	testTupleSpace.addNewClient(actualWaitingClient)
+
+	// Remove client with method
+	testTupleSpace.removeClientAt(0)
+
+	isWaitingClientsEmpty := len(testTupleSpace.waitingClients) == 0
+
+	if !isWaitingClientsEmpty {
+		t.Errorf("The size of %+v was %d but was expected to have the size 0 after the client %+v was removed.", testTupleSpace.waitingClients, len(testTupleSpace.waitingClients), actualWaitingClient)
+	}
+}
+
+// TestPutPOneMatchingQueryOneMatchingGet will make sure that both the
+// QueryRequest and the GetRequest get the tuple.
+func TestPutPOneMatchingQueryOneMatchingGet(t *testing.T) {
+	// Setup
+	testTupleSpace := createTestTupleSpace(9004)
+	// Add one matching QueryRequest and one matching GetRequest
+	queryChan := make(chan *Tuple)
+	getChan := make(chan *Tuple)
+	waitingClientQuery := CreateWaitingClient(CreateTemplate([]interface{}{"Matching field"}), queryChan, false)
+	waitingClientGet := CreateWaitingClient(CreateTemplate([]interface{}{"Matching field"}), getChan, true)
+	testTupleSpace.addNewClient(waitingClientQuery)
+	testTupleSpace.addNewClient(waitingClientGet)
+	testTuple := CreateTuple([]interface{}{"Matching field"})
+
+	go testTupleSpace.putP(&testTuple)
+
+	queryResponse := <-queryChan
+
+	if !reflect.DeepEqual(*queryResponse, testTuple) {
+		t.Errorf("The tuple received by %+v is %+v but was expected to be %+v.", waitingClientQuery, *queryResponse, testTuple)
+	}
+
+	getResponse := <-getChan
+
+	if !reflect.DeepEqual(*getResponse, testTuple) {
+		t.Errorf("The tuple received by %+v is %+v but was expected to be %+v.", waitingClientGet, *getResponse, testTuple)
+	}
+
+	isTupleSpaceEmpty := testTupleSpace.Size() == 0
+
+	if !isTupleSpaceEmpty {
+		t.Errorf("The size of %+v was %d but was expected to have the size 0.", testTupleSpace.tuples, testTupleSpace.Size())
+	}
+}
+
 func createTestTupleSpace(testPort int) *TupleSpace {
 	return CreateTupleSpace(testPort)
 }
 
 /*
-func TestRemoveClientAt(t *testing.T) {
-	// Initially check there are one waiting client from previous test by
-	// securing the size of it is 1.
-	if len(testTupleSpace.waitingClients) != 1 {
-		t.Errorf("The size of %+v was %d but was expected to have the size 1.", testTupleSpace.waitingClients, len(testTupleSpace.waitingClients))
-	}
-
-	// Add two additional clients.
-	// Make a client.
-	temp2 := CreateTemplate("test field2")
-	temp3 := CreateTemplate("test field3")
-	response := make(chan *Tuple)
-	remove := false // QueryRequest
-	client2 := CreateWaitingClient(temp2, response, remove)
-	client3 := CreateWaitingClient(temp3, response, remove)
-	// NOTE: client is not added, as it was added in the previous test.
-	testTupleSpace.addNewClient(client2)
-	testTupleSpace.addNewClient(client3)
-
-	// Remove the 2nd client for waitingClients.
-	testTupleSpace.removeClientAt(1)
-	// The third client is now found at the index where the 2nd client used to
-	// be.
-	// Check that the 3rd client is at 1
-	if !reflect.DeepEqual(testTupleSpace.waitingClients[1], client3) {
-		t.Errorf("The client %+v from the waitingClients isn't equal to the client %+v that was added to the waitingClients.", testTupleSpace.waitingClients[1], client3)
-	}
-
-	// Remove the 3rd client for waitingClients.
-	testTupleSpace.removeClientAt(1)
-
-	// Check that the size is as started, 1
-	if len(testTupleSpace.waitingClients) != 1 {
-		t.Errorf("The size of %+v was %d but was expected to have the size 1.", testTupleSpace.waitingClients, len(testTupleSpace.waitingClients))
-	}
-
-	// Remove the last client to clear the tuple space.
-	testTupleSpace.removeClientAt(0)
-}
 
 // TestTupleSpacePutP will make sure a tuple is added to the tuple space
 // correctly.
