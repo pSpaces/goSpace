@@ -122,526 +122,373 @@ func TestPutPOneMatchingQueryOneMatchingGet(t *testing.T) {
 	}
 }
 
-func createTestTupleSpace(testPort int) *TupleSpace {
-	return CreateTupleSpace(testPort)
-}
+func TestPutPNoWaitingClients(t *testing.T) {
+	// Setup
+	testTupleSpace := createTestTupleSpace(9005)
+	testTuple := CreateTuple([]interface{}{"Matching field"})
 
-/*
+	testTupleSpace.putP(&testTuple)
 
-// TestTupleSpacePutP will make sure a tuple is added to the tuple space
-// correctly.
-func TestTupleSpacePutPNoWaitingClients(t *testing.T) {
-	// Initially check the tuple space is empty by securing the size of it is
-	// 0.
-	if testTupleSpace.Size() != 0 {
-		t.Errorf("The size of %q was %d but was expected to have the size 0.", testTupleSpace.tuples, testTupleSpace.Size())
-	}
-
-	// Initially check there are no waiting clients by securing the size of it
-	// is 0.
-	if len(testTupleSpace.waitingClients) != 0 {
-		t.Errorf("The size of %+v was %d but was expected to have the size 0.", testTupleSpace.waitingClients, len(testTupleSpace.waitingClients))
-	}
-
-	// Add a tuple to the tuple space.
-	testTupleSpace.putP(&testTupleFourFields)
-
-	// Check that the size of the tuples is 1.
 	if testTupleSpace.Size() != 1 {
-		t.Errorf("The size of %q was %d but was expected to have the size 1 after to tuple %q was added to an empty tuple space", testTupleSpace.tuples, testTupleSpace.Size(), testTupleFourFields)
-	}
-
-	// Extract the tuple from the data structure for tuples in the tuple space
-	// and check it was added without being altered.
-	tuple := testTupleSpace.tuples[0]
-
-	if !reflect.DeepEqual(testTupleFourFields, tuple) {
-		t.Errorf("The tuple %q from the tuple spaces isn't equal to the tuple %q that was added to the tuple space.", tuple, testTupleFourFields)
+		t.Errorf("The size of %+v was %d but was expected to have size 1 after %+v was put.", testTupleSpace.tuples, testTupleSpace.Size(), testTuple)
 	}
 }
 
-// TestTupleSpaceClearTupleSpace will make sure that the method will clear the
-// data structure tuples[] for tuples.
-func TestTupleSpaceClearTupleSpace(t *testing.T) {
-	// Initially check that the tuple space contains some number of tuples.
-	if testTupleSpace.Size() == 0 {
-		t.Errorf("The tuple space is empty, %q, and should contain some amount of tuples to test clearTupleSpace().", testTupleSpace.tuples)
-	}
+func TestPut(t *testing.T) {
+	// Setup
+	testTupleSpace := createTestTupleSpace(9006)
+	testTuple := CreateTuple([]interface{}{"Matching field"})
 
-	// Clear the tuple space for exsisting tuples.
+	testChan := make(chan bool)
+
+	go testTupleSpace.put(&testTuple, testChan)
+
+	testResponse := <-testChan
+
+	if testResponse != true {
+		t.Errorf("The response of put was %t but was expected to be true.", testResponse)
+	}
+}
+
+func TestClearTupleSpace(t *testing.T) {
+	// Setup
+	testTupleSpace := createTestTupleSpace(9007)
+	testTuple := CreateTuple([]interface{}{"Matching field"})
+	testTupleSpace.putP(&testTuple)
+
 	testTupleSpace.clearTupleSpace()
 
 	if testTupleSpace.Size() != 0 {
-		t.Errorf("The size of %q was %d but was expected to have the size 0.", testTupleSpace.tuples, testTupleSpace.Size())
+		t.Errorf("The size of %+v was %d but was expected to have the size 0.", testTupleSpace.tuples, testTupleSpace.Size())
 	}
 }
 
-// TestTupleSpacePut will make sure a tuple is the right response is returned
-// when a tuple has been added to the tuple space.
-func TestTupleSpacePut(t *testing.T) {
-	// Make sure the tuple space is empty.
-	testTupleSpace.clearTupleSpace()
-
-	// Create channel to receive the response.
-	response := make(chan bool)
-
-	// Add the tuple to the tuple space with the put()
-	go func() {
-		testTupleSpace.put(&testTupleFourFields, response)
-		time.Sleep(time.Second * 1)
-	}()
-
-	// Read the response from the channel.
-	b := <-response
-
-	// Check the response is as expected.
-	if !b {
-		t.Errorf("TestTupleSpaceFindTuple(%t) should be true", b)
-	}
-}
-
-// TestTupleSpaceRemoveTupleAt will make sure the right tuple is removed.
 func TestTupleSpaceRemoveTupleAt(t *testing.T) {
-	// Initially check that the tuple space contains some number of tuples.
-	if testTupleSpace.Size() == 0 {
-		t.Errorf("The tuple space is empty, %q, and should contain some amount of tuples to test clearTupleSpace().", testTupleSpace.tuples)
+	// Setup
+	testTupleSpace := createTestTupleSpace(9008)
+	testTuple1 := CreateTuple([]interface{}{"Tuple", 1})
+	testTuple2 := CreateTuple([]interface{}{"Tuple", 2})
+	testTuple3 := CreateTuple([]interface{}{"Tuple", 3})
+	testTupleSpace.putP(&testTuple1)
+	testTupleSpace.putP(&testTuple2)
+	testTupleSpace.putP(&testTuple3)
+
+	// Remove the middle tuple, index 1 and see the last tuple is moved to
+	// that index.
+	testTupleSpace.removeTupleAt(1)
+
+	if !reflect.DeepEqual(testTupleSpace.tuples[0], testTuple1) {
+		t.Errorf("The tuple at 0 is %+v but was expected to be %+v.", testTupleSpace.tuples[0], testTuple1)
 	}
 
-	// Get the first tuple.
-	tuple := testTupleSpace.tuples[0]
-
-	// Remove the first tuple from the tuple space.
-	testTupleSpace.removeTupleAt(0)
-
-	// Check the tuple isn't in the tuple space anymore.
-	for _, tupleFromTS := range testTupleSpace.tuples {
-		if reflect.DeepEqual(tuple, tupleFromTS) {
-			t.Errorf("The tuple %q is still in the tuples space %q", tuple, testTupleSpace.tuples)
-		}
+	if !reflect.DeepEqual(testTupleSpace.tuples[1], testTuple3) {
+		t.Errorf("The tuple at 1 is %+v but was expected to be %+v.", testTupleSpace.tuples[1], testTuple3)
 	}
 }
 
-// TestTupleSpaceFindTuple will make sure that the right tuple is found of the
-// data structure of tuples.
-func TestTupleSpaceFindTuple(t *testing.T) {
-	// Make sure the tuple space is empty.
-	testTupleSpace.clearTupleSpace()
+func TestFindTupleMatchingTupleRemove(t *testing.T) {
+	// Setup
+	testTupleSpace := createTestTupleSpace(9009)
+	testTuple := CreateTuple([]interface{}{"Matching field"})
+	testTupleSpace.putP(&testTuple)
 
-	// Add a tuple to the tuple space.
-	testTupleSpace.putP(&testTupleTwoFields)
+	testTemplate := CreateTemplate([]interface{}{"Matching field"})
+	findTupleResult := testTupleSpace.findTuple(testTemplate, true)
 
-	// Create a template that matches the tuple just added to the tuple space.
-	temp := CreateTemplate("Field 1", true)
-
-	// Find the tuple using the method, without removing the tuple.
-	t1 := testTupleSpace.findTuple(temp, false)
-
-	// Check that the tuple found is equal to the tuple that was added.
-	if !reflect.DeepEqual(*t1, testTupleTwoFields) {
-		t.Errorf("The tuple %q was found by the method by should be %q", *t1, testTupleTwoFields)
+	// Check the correct tuple was found.
+	if !reflect.DeepEqual(*findTupleResult, testTuple) {
+		t.Errorf("The tuple found %+v was expected to look like %+v.", findTupleResult, testTuple)
 	}
 
-	// Check that the tuple wasn't removed from the tuple space
+	// Check that the tuple was removed from the tuple space.
+	if testTupleSpace.Size() != 0 {
+		t.Errorf("The size of %+v was %d but was expected to have the size 0.", testTupleSpace.tuples, testTupleSpace.Size())
+	}
+}
+
+func TestFindTupleMatchingTupleNoRemove(t *testing.T) {
+	// Setup
+	testTupleSpace := createTestTupleSpace(9010)
+	testTuple := CreateTuple([]interface{}{"Matching field"})
+	testTupleSpace.putP(&testTuple)
+
+	testTemplate := CreateTemplate([]interface{}{"Matching field"})
+	findTupleResult := testTupleSpace.findTuple(testTemplate, false)
+
+	// Check the correct tuple was found.
+	if !reflect.DeepEqual(*findTupleResult, testTuple) {
+		t.Errorf("The tuple found %+v was expected to look like %+v.", findTupleResult, testTuple)
+	}
+
+	// Check that the tuple was removed from the tuple space.
 	if testTupleSpace.Size() != 1 {
-		t.Errorf("The size of %q was %d but was expected to have the size 1 as the tuple shouldn't have been removed from the tuple space", testTupleSpace.tuples, testTupleSpace.Size())
-	}
-
-	// Find the tuple using the method and removing the tuple.
-	t2 := testTupleSpace.findTuple(temp, true)
-
-	// Check that the tuple found is equal to the tuple that was added.
-	if !reflect.DeepEqual(*t2, testTupleTwoFields) {
-		t.Errorf("The tuple %q was found by the method by should be %q", *t1, testTupleTwoFields)
-	}
-
-	// Check that the tuple was removed from the tuple space
-	if testTupleSpace.Size() != 0 {
-		t.Errorf("The size of %q was %d but was expected to have the size 0 as the tuple should have been removed from the tuple space", testTupleSpace.tuples, testTupleSpace.Size())
-	}
-
-	// Find a tuple that doesn't exists in the tuple space.
-	t3 := testTupleSpace.findTuple(temp, true)
-
-	// Check that the tuple is nil, meaning there was no tuple matching the
-	// template.
-	if t3 != nil {
-		t.Errorf("TestTupleSpaceFindTuple(%q) should be nil", t3)
+		t.Errorf("The size of %+v was %d but was expected to have the size 1.", testTupleSpace.tuples, testTupleSpace.Size())
 	}
 }
 
-// TestTupleSpacePutPWithOneGetWaitingClient will make sure that is there's a
-// client performing a get who matches the tuple, the tuple is sent to it and
-// isn't added to the tuple space.
-func TestTupleSpacePutPWithOneGetWaitingClient(t *testing.T) {
-	// Initially check the tuple space is empty by securing the size of it is
-	// 0.
+func TestFindTupleNoMatchingTuple(t *testing.T) {
+	// Setup
+	testTupleSpace := createTestTupleSpace(9011)
+
+	testTemplate := CreateTemplate([]interface{}{"Matching field"})
+	findTupleResult := testTupleSpace.findTuple(testTemplate, true)
+
+	// Check the correct tuple was found.
+	if findTupleResult != nil {
+		t.Errorf("The tuple found %+v was expected to be nil.", findTupleResult)
+	}
+
+	// Check that the tuple was removed from the tuple space.
 	if testTupleSpace.Size() != 0 {
-		t.Errorf("The size of %q was %d but was expected to have the size 0.", testTupleSpace.tuples, testTupleSpace.Size())
-	}
-
-	// Initially check there are no waiting clients by securing the size of it
-	// is 0.
-	if len(testTupleSpace.waitingClients) != 0 {
-		t.Errorf("The size of %+v was %d but was expected to have the size 0.", testTupleSpace.waitingClients, len(testTupleSpace.waitingClients))
-	}
-
-	temp := CreateTemplate("test field")
-	tupleChan := make(chan *Tuple)
-	remove := true
-	client := CreateWaitingClient(temp, tupleChan, remove)
-	tupleResponse := new(Tuple)
-	testTupleSpace.addNewClient(client)
-	go func() {
-		tupleResponse = <-tupleChan
-	}()
-
-	// Add a matching tuple to the tuple space.
-	tuple := CreateTuple("test field")
-	testTupleSpace.putP(&tuple)
-
-	// Check that the size of the tuples is 0.
-	if testTupleSpace.Size() != 0 {
-		t.Errorf("The size of %q was %d but was expected to have the size 0 as the waiting client was performing a get operation.", testTupleSpace.tuples, testTupleSpace.Size(), tuple)
-	}
-
-	if len(testTupleSpace.waitingClients) != 0 {
-		t.Errorf("The size of %+v was %d but was expected to have the size 0", testTupleSpace.waitingClients, len(testTupleSpace.waitingClients))
-	}
-
-	if !reflect.DeepEqual(tuple, *tupleResponse) {
-		t.Errorf("The tuples were not equal, they tuple place by putP looks like %+v and the found tuple looks like %+v", tuple, tupleResponse)
+		t.Errorf("The size of %+v was %d but was expected to have the size 0.", testTupleSpace.tuples, testTupleSpace.Size())
 	}
 }
 
-// TestTupleSpacePutPWithOneQueryWaitingClient will make sure that is there's a
-// client performing a query who matches the tuple, the tuple is sent to it and
-// isn't added to the tuple space.
-func TestTupleSpacePutPWithOneQueryWaitingClient(t *testing.T) {
-	// Initially check the tuple space is empty by securing the size of it is
-	// 0.
+func TestFindTupleBlockingMatchingTuple(t *testing.T) {
+	// Setup
+	testTupleSpace := createTestTupleSpace(9012)
+	testTuple := CreateTuple([]interface{}{"Matching field"})
+	testTupleSpace.putP(&testTuple)
+
+	testTemplate := CreateTemplate([]interface{}{"Matching field"})
+	testChan := make(chan *Tuple)
+	go testTupleSpace.findTupleBlocking(testTemplate, testChan, true)
+
+	testResponse := <-testChan
+
+	// Check the correct tuple was found.
+	if !reflect.DeepEqual(*testResponse, testTuple) {
+		t.Errorf("The tuple found %+v was expected to look like %+v.", *testResponse, testTuple)
+	}
+
+	// Check that the tuple was removed from the tuple space.
 	if testTupleSpace.Size() != 0 {
-		t.Errorf("The size of %q was %d but was expected to have the size 0.", testTupleSpace.tuples, testTupleSpace.Size())
-	}
-
-	// Initially check there are no waiting clients by securing the size of it
-	// is 0.
-	if len(testTupleSpace.waitingClients) != 0 {
-		t.Errorf("The size of %+v was %d but was expected to have the size 0.", testTupleSpace.waitingClients, len(testTupleSpace.waitingClients))
-	}
-
-	temp := CreateTemplate("test field")
-	tupleChan := make(chan *Tuple)
-	remove := false
-	client := CreateWaitingClient(temp, tupleChan, remove)
-	tupleResponse := new(Tuple)
-	testTupleSpace.addNewClient(client)
-	go func() {
-		tupleResponse = <-tupleChan
-	}()
-
-	// Add a matching tuple to the tuple space.
-	tuple := CreateTuple("test field")
-	testTupleSpace.putP(&tuple)
-
-	// Check that the size of the tuples is 1.
-	if testTupleSpace.Size() != 1 {
-		t.Errorf("The size of %q was %d but was expected to have the size 1 as the waiting client was performing a get operation.", testTupleSpace.tuples, testTupleSpace.Size())
-	}
-
-	if len(testTupleSpace.waitingClients) != 0 {
-		t.Errorf("The size of %+v was %d but was expected to have the size 0", testTupleSpace.waitingClients, len(testTupleSpace.waitingClients))
-	}
-
-	if !reflect.DeepEqual(tuple, *tupleResponse) {
-		t.Errorf("The tuples were not equal, they tuple place by putP looks like %+v and the found tuple looks like %+v", tuple, tupleResponse)
+		t.Errorf("The size of %+v was %d but was expected to have the size 0.", testTupleSpace.tuples, testTupleSpace.Size())
 	}
 }
 
-// TestTupleSpacePutPWithOneQueryWaitingClient will make sure that is there's a
-// client performing a query who matches the tuple followed by a client
-// performing a get who matches the tuple. The tuple is sent to both client due
-// to their order and it isn't added to the tuple space.
-func TestTupleSpacePutPWithOneQueryOneGetWaitingClient(t *testing.T) {
-	// Make sure tuple space is empty.
-	testTupleSpace.clearTupleSpace()
+func TestFindTupleBlockingNoMatchingTuple(t *testing.T) {
+	// Setup
+	testTupleSpace := createTestTupleSpace(9013)
 
-	// Initially check there are no waiting clients by securing the size of it
-	// is 0.
-	if len(testTupleSpace.waitingClients) != 0 {
-		t.Errorf("The size of %+v was %d but was expected to have the size 0.", testTupleSpace.waitingClients, len(testTupleSpace.waitingClients))
-	}
+	testTemplate := CreateTemplate([]interface{}{"Matching field"})
+	testChan := make(chan *Tuple)
+	testTupleSpace.findTupleBlocking(testTemplate, testChan, true)
 
-	temp := CreateTemplate("test field")
-	tupleChanQ := make(chan *Tuple)
-	tupleChanG := make(chan *Tuple)
-	bQuery := false
-	bGet := true
-	cQuery := CreateWaitingClient(temp, tupleChanQ, bQuery)
-	testTupleSpace.addNewClient(cQuery)
-	cGet := CreateWaitingClient(temp, tupleChanG, bGet)
-	testTupleSpace.addNewClient(cGet)
-	tupleResponseQ := new(Tuple)
-	tupleResponseG := new(Tuple)
-
-	go func() {
-		tupleResponseQ = <-tupleChanQ
-	}()
-	go func() {
-		tupleResponseG = <-tupleChanG
-	}()
-
-	// Add a matching tuple to the tuple space.
-	tuple := CreateTuple("test field")
-	testTupleSpace.putP(&tuple)
-
-	time.Sleep(1 * time.Second)
-
-	// Check that the size of the tuples is 1.
-	if testTupleSpace.Size() != 0 {
-		t.Errorf("The size of %q was %d but was expected to have the size 0 as the waiting clients were performing a query followed by a get operation.", testTupleSpace.tuples, testTupleSpace.Size())
-	}
-
-	if len(testTupleSpace.waitingClients) != 0 {
-		t.Errorf("The size of %+v was %d but was expected to have the size 0", testTupleSpace.waitingClients, len(testTupleSpace.waitingClients))
-	}
-
-	// Check that the Query found the correct tuple.
-	if !reflect.DeepEqual(tuple, *tupleResponseQ) {
-		t.Errorf("The tuples were not equal, they tuple place by putP looks like %+v and the found tuple by Query looks like %+v", tuple, tupleResponseQ)
-	}
-
-	// Check that the Get found the correct tuple.
-	if !reflect.DeepEqual(tuple, *tupleResponseG) {
-		t.Errorf("The tuples were not equal, they tuple place by putP looks like %+v and the found tuple by Get looks like %+v", tuple, tupleResponseG)
-	}
-}
-*/
-// TestTupleSpaceFindTupleBlocking will make sure that if a tuple matching the
-// template doesn't exsist in the tuple space it will add the client to
-// waitingClients.
-/*
-func TestTupleSpaceFindTupleBlocking(t *testing.T) {
-	// Make sure the tuple space is empty.
-	testTupleSpace.muTuples.Lock()
-	testTupleSpace.clearTupleSpace()
-	testTupleSpace.muTuples.Unlock()
-
-	if len(testTupleSpace.waitingClients) != 0 {
-		t.Errorf("The size of %+v was %d but was expected to have the size 0.", testTupleSpace.waitingClients, len(testTupleSpace.waitingClients))
-	}
-
-	// Create a template that matches the tuple just added to the tuple space.
-	temp := CreateTemplate("Field 1")
-
-	// Create a channel to receive the response
-	response := make(chan<- *Tuple)
-
-	testTupleSpace.findTupleBlocking(temp, response, true)
-
+	// Check that the client was added to waitingClients.
 	if len(testTupleSpace.waitingClients) != 1 {
 		t.Errorf("The size of %+v was %d but was expected to have the size 1.", testTupleSpace.waitingClients, len(testTupleSpace.waitingClients))
 	}
+}
 
-	tuple := CreateTuple("Field 1")
-	go testTupleSpace.putP(&tuple)
+func TestGet(t *testing.T) {
+	// Setup
+	testTupleSpace := createTestTupleSpace(9014)
+	testTuple := CreateTuple([]interface{}{"Matching field"})
+	testTupleSpace.putP(&testTuple)
 
-	if len(testTupleSpace.waitingClients) != 0 {
-		t.Errorf("The size of %+v was %d but was expected to have the size 0.", testTupleSpace.waitingClients, len(testTupleSpace.waitingClients))
-	}
-}*/
+	testTemplate := CreateTemplate([]interface{}{"Matching field"})
+	testChan := make(chan *Tuple)
+	go testTupleSpace.get(testTemplate, testChan)
 
-/*
-// TestTupleSpaceQueryAndGet will make sure that query() and get() returns the
-// correct tuple.
-func TestTupleSpaceQueryAndGet(t *testing.T) {
-	// Make sure the tuple space is empty.
-	testTupleSpace.clearTupleSpace()
+	testResponse := <-testChan
 
-	// Add a tuple to the tuple space.
-	testTupleSpace.putP(&testTupleTwoFields)
-
-	// Create a template that matches the tuple just added to the tuple space.
-	temp := CreateTemplate("Field 1", true)
-
-	// Create a channel to receive the response
-	response := make(chan *Tuple)
-
-	// Find a tuple matching the template with the query method.
-	go testTupleSpace.query(temp, response)
-
-	// Read the tuple found.
-	tQuery := <-response
-
-	// Check that it's equal to the tuple added.
-	if !reflect.DeepEqual(*tQuery, testTupleTwoFields) {
-		t.Errorf("The query found %q but should have found %q", tQuery, testTupleTwoFields)
+	if !reflect.DeepEqual(*testResponse, testTuple) {
+		t.Errorf("get() gave %+v but was expected to return %+v.", *testResponse, testTuple)
 	}
 
-	// Find a tupe matching the template with the get method.
-	go testTupleSpace.get(temp, response)
-
-	// Read the tuple found.
-	tGet := <-response
-
-	// Check that it's equal to the tuple added.
-	if !reflect.DeepEqual(*tGet, testTupleTwoFields) {
-		t.Errorf("The get found %q but should have found %q", tGet, testTupleTwoFields)
+	if testTupleSpace.Size() != 0 {
+		t.Errorf("The size of %+v was %d but was expected to have the size 0.", testTupleSpace.tuples, testTupleSpace.Size())
 	}
 }
 
-// TestTupleSpaceFindTupleNonlocking will make sure the method isn't blocking
-// if there isn't a tuple matching a template in the tuple space.
-func TestTupleSpaceFindTupleNonlocking(t *testing.T) {
-	// Make sure the tuple space is empty.
-	testTupleSpace.clearTupleSpace()
+func TestQuery(t *testing.T) {
+	// Setup
+	testTupleSpace := createTestTupleSpace(9015)
+	testTuple := CreateTuple([]interface{}{"Matching field"})
+	testTupleSpace.putP(&testTuple)
 
-	// Create a template that matches the tuple just added to the tuple space.
-	temp := CreateTemplate("Field 1", true)
+	testTemplate := CreateTemplate([]interface{}{"Matching field"})
+	testChan := make(chan *Tuple)
+	go testTupleSpace.query(testTemplate, testChan)
 
-	// Create a channel to receive the response
-	response := make(chan *Tuple)
+	testResponse := <-testChan
 
-	// Run the findTupleNonblocking, with no tuples in the tuple space.
-	go testTupleSpace.findTupleNonblocking(temp, response, true)
-
-	// Read the tuple found.
-	tNonblockingNil := <-response
-
-	// Check the tuple found is nil as no tuple were in the tuple space.
-	if tNonblockingNil != nil {
-		t.Errorf("tNonblockingNil should have been nil but was %q instead", tNonblockingNil)
+	if !reflect.DeepEqual(*testResponse, testTuple) {
+		t.Errorf("query() gave %+v but was expected to return %+v.", *testResponse, testTuple)
 	}
 
-	// Add a tuple to the tuple space.
-	testTupleSpace.putP(&testTupleTwoFields)
-
-	// Run the findTupleNonblocking, with a macthing tuple in the tuple space.
-	go testTupleSpace.findTupleNonblocking(temp, response, true)
-
-	// Read the tuple found.
-	tNonblocking := <-response
-
-	// Check that the found tuple is equal to the tuple added to the tuple
-	// space.
-	if !reflect.DeepEqual(*tNonblocking, testTupleTwoFields) {
-		t.Errorf("The findTupleNonblocking found %q but should have found %q", tNonblocking, testTupleTwoFields)
+	if testTupleSpace.Size() != 1 {
+		t.Errorf("The size of %+v was %d but was expected to have the size 1.", testTupleSpace.tuples, testTupleSpace.Size())
 	}
 }
 
-// TestTupleSpaceQueryPAndGetP will make sure that queryP() and getP() returns
-// the correct tuple.
-func TestTupleSpaceQueryPAndGetP(t *testing.T) {
-	// Make sure the tuple space is empty.
-	testTupleSpace.clearTupleSpace()
+func TestFindTupleNonblocking(t *testing.T) {
+	// Setup
+	testTupleSpace := createTestTupleSpace(9016)
+	testTuple := CreateTuple([]interface{}{"Matching field"})
+	testTupleSpace.putP(&testTuple)
 
-	// Add a tuple to the tuple space.
-	testTupleSpace.putP(&testTupleTwoFields)
+	testTemplate := CreateTemplate([]interface{}{"Matching field"})
+	testChan := make(chan *Tuple)
+	go testTupleSpace.findTupleNonblocking(testTemplate, testChan, true)
 
-	// Create a template that matches the tuple just added to the tuple space.
-	temp := CreateTemplate("Field 1", true)
+	testResponse := <-testChan
 
-	// Create a channel to receive the response
-	response := make(chan *Tuple)
-
-	// Find a tuple matching the template with the query method.
-	go testTupleSpace.queryP(temp, response)
-
-	// Read the tuple found.
-	tQueryP := <-response
-
-	// Check that it's equal to the tuple added.
-	if !reflect.DeepEqual(*tQueryP, testTupleTwoFields) {
-		t.Errorf("The query found %q but should have found %q", tQueryP, testTupleTwoFields)
-	}
-
-	// Find a tupe matching the template with the get method.
-	go testTupleSpace.getP(temp, response)
-
-	// Read the tuple found.
-	tGetP := <-response
-
-	// Check that it's equal to the tuple added.
-	if !reflect.DeepEqual(*tGetP, testTupleTwoFields) {
-		t.Errorf("The get found %q but should have found %q", tGetP, testTupleTwoFields)
+	if !reflect.DeepEqual(*testResponse, testTuple) {
+		t.Errorf("FindTupleNonblocking gave %+v but was expected to return %+v.", *testResponse, testTuple)
 	}
 }
 
-// TestTupleSpaceFindAllTuples will make sure all tuples from the tuple space
-// are returned.
-func TestTupleSpaceFindAllTuples(t *testing.T) {
-	// Make sure the tuple space is empty.
-	testTupleSpace.clearTupleSpace()
+func TestGetP(t *testing.T) {
+	// Setup
+	testTupleSpace := createTestTupleSpace(9017)
+	testTuple := CreateTuple([]interface{}{"Matching field"})
+	testTupleSpace.putP(&testTuple)
 
-	// Add a tuple twice to the tuple space.
-	testTupleSpace.putP(&testTupleTwoFields)
-	testTupleSpace.putP(&testTupleTwoFields)
+	testTemplate := CreateTemplate([]interface{}{"Matching field"})
+	testChan := make(chan *Tuple)
+	go testTupleSpace.getP(testTemplate, testChan)
 
-	// Make local list of tuples for comparison.
-	tuplesLocal := []Tuple{testTupleTwoFields, testTupleTwoFields}
+	testResponse := <-testChan
 
-	// Create a channel to receive the response
-	response := make(chan []Tuple)
-
-	// Run the findAllTuples, without removing them.
-	go testTupleSpace.findAllTuples(response, false)
-
-	// Read the tuples.
-	tuples := <-response
-
-	// Check the list of tuples found is equal to the local list of tuples.
-	if !reflect.DeepEqual(tuplesLocal, tuples) {
-		t.Errorf("findAllTuples returned %q but was expected to return %q.", tuples, tuplesLocal)
+	if !reflect.DeepEqual(*testResponse, testTuple) {
+		t.Errorf("getP() gave %+v but was expected to return %+v.", *testResponse, testTuple)
 	}
 
-	// Run the findAllTuples and remove them.
-	go testTupleSpace.findAllTuples(response, true)
-
-	// Read the tuples.
-	tuples = <-response
-
-	// Check the list of tuples found is equal to the local list of tuples.
-	if !reflect.DeepEqual(tuplesLocal, tuples) {
-		t.Errorf("findAllTuples returned %q but was expected to return %q.", tuples, tuplesLocal)
+	if testTupleSpace.Size() != 0 {
+		t.Errorf("The size of %+v was %d but was expected to have the size 0.", testTupleSpace.tuples, testTupleSpace.Size())
 	}
 }
 
-// TestTupleSpaceQueryAllAndGetAll will make sure that queryAll() returns every
-// tuple without removing them and that getAll() returns every tuple along with
-// removing them from the tuple space.
-func TestTupleSpaceQueryAllAndGetAll(t *testing.T) {
-	// Make sure the tuple space is empty.
-	testTupleSpace.clearTupleSpace()
+func TestQueryP(t *testing.T) {
+	// Setup
+	testTupleSpace := createTestTupleSpace(9018)
+	testTuple := CreateTuple([]interface{}{"Matching field"})
+	testTupleSpace.putP(&testTuple)
 
-	// Add a tuple twice to the tuple space.
-	testTupleSpace.putP(&testTupleTwoFields)
-	testTupleSpace.putP(&testTupleTwoFields)
+	testTemplate := CreateTemplate([]interface{}{"Matching field"})
+	testChan := make(chan *Tuple)
+	go testTupleSpace.queryP(testTemplate, testChan)
 
-	// Make local list of tuples for comparison.
-	tuplesLocal := []Tuple{testTupleTwoFields, testTupleTwoFields}
+	testResponse := <-testChan
 
-	// Create a channel to receive the response
-	response := make(chan []Tuple)
-
-	// Find a tuple matching the template with the query method.
-	go testTupleSpace.queryAll(response)
-
-	// Read the tuples.
-	tuplesQuery := <-response
-
-	// Check the list of tuples found is equal to the local list of tuples.
-	if !reflect.DeepEqual(tuplesLocal, tuplesQuery) {
-		t.Errorf("findAllTuples returned %q but was expected to return %q.", tuplesQuery, tuplesLocal)
+	if !reflect.DeepEqual(*testResponse, testTuple) {
+		t.Errorf("queryP() gave %+v but was expected to return %+v.", *testResponse, testTuple)
 	}
 
-	// Find a tupe matching the template with the get method.
-	go testTupleSpace.getAll(response)
-
-	// Read the tuple found.
-	tuplesGet := <-response
-
-	// Check the list of tuples found is equal to the local list of tuples.
-	if !reflect.DeepEqual(tuplesLocal, tuplesGet) {
-		t.Errorf("findAllTuples returned %q but was expected to return %q.", tuplesGet, tuplesLocal)
+	if testTupleSpace.Size() != 1 {
+		t.Errorf("The size of %+v was %d but was expected to have the size 1.", testTupleSpace.tuples, testTupleSpace.Size())
 	}
 }
-*/
+
+func TestFindAllTuplesMatchingTuplesRemove(t *testing.T) {
+	// Setup
+	testTupleSpace := createTestTupleSpace(9019)
+	testTuple := CreateTuple([]interface{}{"Matching field"})
+	testTupleSpace.putP(&testTuple)
+	testTupleSpace.putP(&testTuple)
+
+	testTemplate := CreateTemplate([]interface{}{"Matching field"})
+	testChan := make(chan []Tuple)
+	go testTupleSpace.findAllTuples(testTemplate, testChan, true)
+
+	testReponse := <-testChan
+
+	if len(testReponse) != 2 {
+		t.Errorf("The size of %+v was %d but was expected to have size 2", testReponse, len(testReponse))
+	}
+
+	if testTupleSpace.Size() != 0 {
+		t.Errorf("The size of %+v was %d but was expected to have size 0", testTupleSpace.tuples, testTupleSpace.tuples)
+	}
+}
+
+func TestFindAllTuplesMatchingTuplesNoRemove(t *testing.T) {
+	// Setup
+	testTupleSpace := createTestTupleSpace(9020)
+	testTuple := CreateTuple([]interface{}{"Matching field"})
+	testTupleSpace.putP(&testTuple)
+	testTupleSpace.putP(&testTuple)
+
+	testTemplate := CreateTemplate([]interface{}{"Matching field"})
+	testChan := make(chan []Tuple)
+	go testTupleSpace.findAllTuples(testTemplate, testChan, false)
+
+	testReponse := <-testChan
+
+	if len(testReponse) != 2 {
+		t.Errorf("The size of %+v was %d but was expected to have size 2", testReponse, len(testReponse))
+	}
+
+	if testTupleSpace.Size() != 2 {
+		t.Errorf("The size of %+v was %d but was expected to have size 2", testTupleSpace.tuples, testTupleSpace.tuples)
+	}
+}
+
+func TestFindAllTuplesNoMatchingTuples(t *testing.T) {
+	// Setup
+	testTupleSpace := createTestTupleSpace(9021)
+
+	testTemplate := CreateTemplate([]interface{}{"Matching field"})
+	testChan := make(chan []Tuple)
+	go testTupleSpace.findAllTuples(testTemplate, testChan, false)
+
+	testReponse := <-testChan
+
+	if len(testReponse) != 0 {
+		t.Errorf("The size of %+v was %d but was expected to have size 0", testReponse, len(testReponse))
+	}
+
+	if testTupleSpace.Size() != 0 {
+		t.Errorf("The size of %+v was %d but was expected to have size 0", testTupleSpace.tuples, testTupleSpace.tuples)
+	}
+}
+
+func TestGetAll(t *testing.T) {
+	// Setup
+	testTupleSpace := createTestTupleSpace(9022)
+	testTuple := CreateTuple([]interface{}{"Matching field"})
+	testTupleSpace.putP(&testTuple)
+	testTupleSpace.putP(&testTuple)
+
+	testTemplate := CreateTemplate([]interface{}{"Matching field"})
+	testChan := make(chan []Tuple)
+	go testTupleSpace.getAll(testTemplate, testChan)
+
+	testReponse := <-testChan
+
+	if len(testReponse) != 2 {
+		t.Errorf("The size of %+v was %d but was expected to have size 2", testReponse, len(testReponse))
+	}
+
+	if testTupleSpace.Size() != 0 {
+		t.Errorf("The size of %+v was %d but was expected to have size 0", testTupleSpace.tuples, testTupleSpace.tuples)
+	}
+}
+
+func TestQueryAll(t *testing.T) {
+	// Setup
+	testTupleSpace := createTestTupleSpace(9023)
+	testTuple := CreateTuple([]interface{}{"Matching field"})
+	testTupleSpace.putP(&testTuple)
+	testTupleSpace.putP(&testTuple)
+
+	testTemplate := CreateTemplate([]interface{}{"Matching field"})
+	testChan := make(chan []Tuple)
+	go testTupleSpace.queryAll(testTemplate, testChan)
+
+	testReponse := <-testChan
+
+	if len(testReponse) != 2 {
+		t.Errorf("The size of %+v was %d but was expected to have size 2", testReponse, len(testReponse))
+	}
+
+	if testTupleSpace.Size() != 2 {
+		t.Errorf("The size of %+v was %d but was expected to have size 2", testTupleSpace.tuples, testTupleSpace.tuples)
+	}
+}
+
+func createTestTupleSpace(testPort int) *TupleSpace {
+	return CreateTupleSpace(testPort)
+}

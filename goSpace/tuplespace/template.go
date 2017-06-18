@@ -31,20 +31,6 @@ func CreateTemplate(fields []interface{}) Template {
 	return template
 }
 
-// DontMatchNumberOfFields changes the value of matchNumberOfFields to false.
-/*
-func (temp *Template) DontMatchNumberOfFields() {
-	temp.MatchNumberOfFields = false
-}
-*/
-
-// DoMatchNumberOfFields changes the value of matchNumberOfFields to true.
-/*
-func (temp *Template) DoMatchNumberOfFields() {
-	temp.MatchNumberOfFields = true
-}
-*/
-
 // length returns the amount of fields of the template.
 func (temp *Template) length() int {
 	return len(temp.Fields)
@@ -54,10 +40,3 @@ func (temp *Template) length() int {
 func (temp *Template) getFieldAt(i int) interface{} {
 	return temp.Fields[i]
 }
-
-// getMatchNumberOfFields returns the value of matchNumberOfFields.
-/*
-func (temp *Template) getMatchNumberOfFields() bool {
-	return temp.MatchNumberOfFields
-}
-*/
