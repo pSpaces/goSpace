@@ -52,9 +52,7 @@ func philosopher(pttable topology.PointToPoint, ptwaiter topology.PointToPoint, 
 	i := 0
 	for {
 		fmt.Printf("Philosopher %d is thinking\n", n)
-		//why does this not work?
 		time.Sleep(time.Duration(rand.Intn(2000)) * time.Millisecond)
-		//time.Sleep(1000 * time.Millisecond)
 		fmt.Printf("Philosopher %d is hungry\n", n)
 		tuplespace.Put(ptwaiter, "request", n)
 		tuplespace.Query(ptwaiter, "permission", n)
