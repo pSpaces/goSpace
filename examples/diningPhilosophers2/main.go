@@ -16,8 +16,8 @@ func main() {
 	table := tuplespace.CreateTupleSpace(portTable)
 	fmt.Println(table)
 	pttable := topology.CreatePointToPoint("me", "localhost", portTable)
-	waiterts := tuplespace.CreateTupleSpace(portWaiter)
-	fmt.Println(waiterts)
+	waiterTS := tuplespace.CreateTupleSpace(portWaiter)
+	fmt.Println(waiterTS)
 	ptwaiter := topology.CreatePointToPoint("me", "localhost", portWaiter)
 
 	n, err := strconv.Atoi(os.Args[1])
