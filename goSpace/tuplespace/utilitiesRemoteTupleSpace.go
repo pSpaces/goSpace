@@ -50,7 +50,8 @@ func Put(ptp topology.PointToPoint, tupleFields ...interface{}) bool {
 // which includes the type of operation and tuple specified by the user.
 // As the method is nonblocking it wont wait for a response whether or not the
 // operation was successful.
-func PutP(t Tuple, ptp topology.PointToPoint) bool {
+func PutP(ptp topology.PointToPoint, tupleFields ...interface{}) bool {
+	t := CreateTuple(tupleFields)
 	conn, errDial := establishConnection(ptp)
 
 	// Error check for establishing connection.
