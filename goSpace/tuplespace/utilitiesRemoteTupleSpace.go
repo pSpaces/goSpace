@@ -174,7 +174,7 @@ func getPAndQueryP(tempFields []interface{}, ptp topology.PointToPoint, operatio
 // space.
 // NOTE: tuples is allowed to be an empty list, implying the tuple space was
 // empty.
-func GetAll(ptp topology.PointToPoint, tempFields ...interface{}) []Tuple {
+func GetAll(ptp topology.PointToPoint, tempFields ...interface{}) ([]Tuple, bool) {
 	return getAllAndQueryAll(tempFields, ptp, constants.GetAllRequest)
 }
 
@@ -184,18 +184,18 @@ func GetAll(ptp topology.PointToPoint, tempFields ...interface{}) []Tuple {
 // space.
 // NOTE: tuples is allowed to be an empty list, implying the tuple space was
 // empty.
-func QueryAll(ptp topology.PointToPoint, tempFields ...interface{}) []Tuple {
+func QueryAll(ptp topology.PointToPoint, tempFields ...interface{}) ([]Tuple, bool) {
 	return getAllAndQueryAll(tempFields, ptp, constants.QueryAllRequest)
 }
 
-func getAllAndQueryAll(tempFields []interface{}, ptp topology.PointToPoint, operation string) []Tuple {
+func getAllAndQueryAll(tempFields []interface{}, ptp topology.PointToPoint, operation string) ([]Tuple, bool) {
 	t := CreateTemplate(tempFields)
 	conn, errDial := establishConnection(ptp)
 
 	// Error check for establishing connection.
 	if errDial != nil {
 		fmt.Println("ErrDial:", errDial)
-		return []Tuple{}
+		return []Tuple{}, false
 	}
 
 	// Make sure the connection closes when method returns.
@@ -208,7 +208,7 @@ func getAllAndQueryAll(tempFields []interface{}, ptp topology.PointToPoint, oper
 	// Error check for sending message.
 	if errSendMessage != nil {
 		fmt.Println("ErrSendMessage:", errSendMessage)
-		return []Tuple{}
+		return []Tuple{}, false
 	}
 
 	tuples, errReceiveMessage := receiveMessageTupleList(conn)
@@ -216,11 +216,11 @@ func getAllAndQueryAll(tempFields []interface{}, ptp topology.PointToPoint, oper
 	// Error check for receiving response.
 	if errReceiveMessage != nil {
 		fmt.Println("ErrReceiveMessage:", errReceiveMessage)
-		return []Tuple{}
+		return []Tuple{}, false
 	}
 
 	// Return result.
-	return tuples
+	return tuples, true
 }
 
 // establishConnection will establish a connection to the PointToPoint ptp and
