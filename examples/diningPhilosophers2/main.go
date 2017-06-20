@@ -16,8 +16,8 @@ func main() {
 	table := tuplespace.CreateTupleSpace(portTable)
 	fmt.Println(table)
 	pttable := topology.CreatePointToPoint("me", "localhost", portTable)
-	waiterts := tuplespace.CreateTupleSpace(portWaiter)
-	fmt.Println(waiterts)
+	waiterTS := tuplespace.CreateTupleSpace(portWaiter)
+	fmt.Println(waiterTS)
 	ptwaiter := topology.CreatePointToPoint("me", "localhost", portWaiter)
 
 	n, err := strconv.Atoi(os.Args[1])
@@ -69,23 +69,28 @@ func philosopher(pttable topology.PointToPoint, ptwaiter topology.PointToPoint, 
 func waiter(ptwaiter topology.PointToPoint, n int) {
 	for {
 		var philosopher int
-		tuplespace.Get(ptwaiter, "request", &philosopher)
-		var neighbor1 int
-		var neighbor2 int
-		if philosopher == 0 {
-			neighbor1 = n - 1
-			neighbor2 = 1
-		} else if philosopher == n-1 {
-			neighbor1 = n - 2
-			neighbor2 = 0
-		} else {
-			neighbor1 = philosopher - 1
-			neighbor2 = philosopher + 1
-		}
-		for tuplespace.QueryP(ptwaiter, "permission", neighbor1) || tuplespace.QueryP(ptwaiter, "permission", neighbor2) {
+		if tuplespace.Get(ptwaiter, "request", &philosopher) {
 
+			var neighbor1 int
+			var neighbor2 int
+			if philosopher == 0 {
+				neighbor1 = n - 1
+				neighbor2 = 1
+			} else if philosopher == n-1 {
+				neighbor1 = n - 2
+				neighbor2 = 0
+			} else {
+				neighbor1 = philosopher - 1
+				neighbor2 = philosopher + 1
+			}
+			found1, conn1 := tuplespace.QueryP(ptwaiter, "permission", neighbor1)
+			found2, conn2 := tuplespace.QueryP(ptwaiter, "permission", neighbor2)
+			for found1 || found2 || !conn1 || !conn2 {
+				found1, conn1 = tuplespace.QueryP(ptwaiter, "permission", neighbor1)
+				found2, conn2 = tuplespace.QueryP(ptwaiter, "permission", neighbor2)
+			}
+			fmt.Printf("Waiter gave permission to philosopher %d\n", philosopher)
+			tuplespace.Put(ptwaiter, "permission", philosopher)
 		}
-		fmt.Printf("Waiter gave permission to philosopher %d\n", philosopher)
-		tuplespace.Put(ptwaiter, "permission", philosopher)
 	}
 }
