@@ -69,10 +69,12 @@ func philosopher(pttable topology.PointToPoint, ptwaiter topology.PointToPoint, 
 func waiter(ptwaiter topology.PointToPoint, n int) {
 	for {
 		var philosopher int
+		//get requests
 		if tuplespace.Get(ptwaiter, "request", &philosopher) {
 
 			var neighbor1 int
 			var neighbor2 int
+			//Find neighbors
 			if philosopher == 0 {
 				neighbor1 = n - 1
 				neighbor2 = 1
@@ -85,11 +87,13 @@ func waiter(ptwaiter topology.PointToPoint, n int) {
 			}
 			found1, conn1 := tuplespace.QueryP(ptwaiter, "permission", neighbor1)
 			found2, conn2 := tuplespace.QueryP(ptwaiter, "permission", neighbor2)
+			//see if neighbors have permission to eat
 			for found1 || found2 || !conn1 || !conn2 {
 				found1, conn1 = tuplespace.QueryP(ptwaiter, "permission", neighbor1)
 				found2, conn2 = tuplespace.QueryP(ptwaiter, "permission", neighbor2)
 			}
 			fmt.Printf("Waiter gave permission to philosopher %d\n", philosopher)
+			//Give permission to philosopher
 			tuplespace.Put(ptwaiter, "permission", philosopher)
 		}
 	}
