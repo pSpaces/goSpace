@@ -310,7 +310,7 @@ func receiveMessageTupleList(conn net.Conn) ([]Tuple, error) {
 func WriteTupleToVariables(t Tuple, variables []interface{}) {
 	for i, value := range variables {
 		if reflect.TypeOf(value).Kind() == reflect.Ptr {
-			//Yep, this is how you change the value of a pointer
+			//changes the value of a pointer
 			reflect.ValueOf(value).Elem().Set(reflect.ValueOf(t.GetFieldAt(i)))
 		}
 	}
