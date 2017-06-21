@@ -51,17 +51,24 @@ func placeForks(ptp topology.PointToPoint, n int) {
 func philosopher(pttable topology.PointToPoint, ptwaiter topology.PointToPoint, n int, fork1 int, fork2 int) {
 	i := 0
 	for {
+		// philosopher thinks
 		fmt.Printf("Philosopher %d is thinking\n", n)
 		time.Sleep(time.Duration(rand.Intn(2000)) * time.Millisecond)
 		fmt.Printf("Philosopher %d is hungry\n", n)
+		//sends request to eat
 		tuplespace.Put(ptwaiter, "request", n)
+		//look for permission
 		tuplespace.Query(ptwaiter, "permission", n)
+		//grab forks
 		tuplespace.Get(pttable, "fork", fork1)
 		tuplespace.Get(pttable, "fork", fork2)
+		//eat
 		fmt.Printf("Philosopher %d is eating for the %d. time\n", n, i)
 		i++
+		//return forks
 		tuplespace.Put(pttable, "fork", fork1)
 		tuplespace.Put(pttable, "fork", fork2)
+		//remove permission
 		tuplespace.Get(ptwaiter, "permission", n)
 	}
 }
