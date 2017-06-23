@@ -37,11 +37,6 @@ func main() {
 
 // Ping will initially act as client
 func ping(ownPtP topology.PointToPoint, theirPtP topology.PointToPoint) {
-	// Create template to find the "Pong" tuple in own tuple space.
-	//template := tuplespace.CreateTemplate("Pong")
-	// Create "Ping" tuple to send to their tuple space.
-	//tuple := tuplespace.CreateTuple("Ping")
-
 	// Initialise the ping-pong by sending a "Ping" tuple to the pong
 	// application's tuple space.
 	tuplespace.Put(theirPtP, "Ping")

@@ -42,6 +42,7 @@ func main() {
 	time.Sleep(time.Duration(t) * time.Second)
 }
 
+// placeForks places forks on the table.
 func placeForks(ptp topology.PointToPoint, n int) {
 	for i := 0; i < n; i++ {
 		tuplespace.Put(ptp, "fork", i)
@@ -51,24 +52,24 @@ func placeForks(ptp topology.PointToPoint, n int) {
 func philosopher(pttable topology.PointToPoint, ptwaiter topology.PointToPoint, n int, fork1 int, fork2 int) {
 	i := 0
 	for {
-		// philosopher thinks
+		// Philosopher thinks
 		fmt.Printf("Philosopher %d is thinking\n", n)
 		time.Sleep(time.Duration(rand.Intn(2000)) * time.Millisecond)
 		fmt.Printf("Philosopher %d is hungry\n", n)
-		//sends request to eat
+		// Sends request to eat
 		tuplespace.Put(ptwaiter, "request", n)
-		//look for permission
+		// LookS for permission
 		tuplespace.Query(ptwaiter, "permission", n)
-		//grab forks
+		// Grab forks
 		tuplespace.Get(pttable, "fork", fork1)
 		tuplespace.Get(pttable, "fork", fork2)
-		//eat
+		// Eats
 		fmt.Printf("Philosopher %d is eating for the %d. time\n", n, i)
 		i++
-		//return forks
+		// Return forks
 		tuplespace.Put(pttable, "fork", fork1)
 		tuplespace.Put(pttable, "fork", fork2)
-		//remove permission
+		// Remove permission
 		tuplespace.Get(ptwaiter, "permission", n)
 	}
 }
@@ -76,12 +77,12 @@ func philosopher(pttable topology.PointToPoint, ptwaiter topology.PointToPoint, 
 func waiter(ptwaiter topology.PointToPoint, n int) {
 	for {
 		var philosopher int
-		//get requests
+		// Get requests
 		if tuplespace.Get(ptwaiter, "request", &philosopher) {
 
 			var neighbor1 int
 			var neighbor2 int
-			//Find neighbors
+			// Find neighbours
 			if philosopher == 0 {
 				neighbor1 = n - 1
 				neighbor2 = 1
@@ -94,13 +95,13 @@ func waiter(ptwaiter topology.PointToPoint, n int) {
 			}
 			found1, conn1 := tuplespace.QueryP(ptwaiter, "permission", neighbor1)
 			found2, conn2 := tuplespace.QueryP(ptwaiter, "permission", neighbor2)
-			//see if neighbors have permission to eat
+			// See if neighbours have permission to eat
 			for found1 || found2 || !conn1 || !conn2 {
 				found1, conn1 = tuplespace.QueryP(ptwaiter, "permission", neighbor1)
 				found2, conn2 = tuplespace.QueryP(ptwaiter, "permission", neighbor2)
 			}
 			fmt.Printf("Waiter gave permission to philosopher %d\n", philosopher)
-			//Give permission to philosopher
+			// Give permission to philosopher
 			tuplespace.Put(ptwaiter, "permission", philosopher)
 		}
 	}
