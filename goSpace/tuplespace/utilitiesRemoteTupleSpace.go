@@ -50,6 +50,8 @@ func Put(ptp topology.PointToPoint, tupleFields ...interface{}) bool {
 // which includes the type of operation and tuple specified by the user.
 // As the method is nonblocking it wont wait for a response whether or not the
 // operation was successful.
+// The method returns a boolean to inform if the operation was carried out with
+// any errors with communication.
 func PutP(ptp topology.PointToPoint, tupleFields ...interface{}) bool {
 	t := CreateTuple(tupleFields)
 	conn, errDial := establishConnection(ptp)
@@ -76,14 +78,16 @@ func PutP(ptp topology.PointToPoint, tupleFields ...interface{}) bool {
 
 // Get will open a TCP connection to the PointToPoint and send the message,
 // which includes the type of operation and template specified by the user.
-// The method returns a tuple that matches the template.
+// The method returns a boolean to inform if the operation was carried out with
+// any errors with communication.
 func Get(ptp topology.PointToPoint, tempFields ...interface{}) bool {
 	return getAndQuery(tempFields, ptp, constants.GetRequest)
 }
 
 // Query will open a TCP connection to the PointToPoint and send the message,
 // which includes the type of operation and template specified by the user.
-// The method returns a tuple that matches the template.
+// The method returns a boolean to inform if the operation was carried out with
+// any errors with communication.
 func Query(ptp topology.PointToPoint, tempFields ...interface{}) bool {
 	return getAndQuery(tempFields, ptp, constants.QueryRequest)
 }
@@ -123,16 +127,16 @@ func getAndQuery(tempFields []interface{}, ptp topology.PointToPoint, operation 
 
 // GetP will open a TCP connection to the PointToPoint and send the message,
 // which includes the type of operation and template specified by the user.
-// The method is nonblocking and will return a boolean that specifies if a
-// tuple matching the template was found or not and the tuple if it found any.
+// The function will return two bool values. The first denotes if a tuple was
+// found, the second if there were any erors with communication.
 func GetP(ptp topology.PointToPoint, tempFields ...interface{}) (bool, bool) {
 	return getPAndQueryP(tempFields, ptp, constants.GetPRequest)
 }
 
 // QueryP will open a TCP connection to the PointToPoint and send the message,
 // which includes the type of operation and template specified by the user.
-// The method is nonblocking and will return a boolean that specifies if a
-// tuple matching the template was found or not and the tuple if it found any.
+// The function will return two bool values. The first denotes if a tuple was
+// found, the second if there were any erors with communication.
 func QueryP(ptp topology.PointToPoint, tempFields ...interface{}) (bool, bool) {
 	return getPAndQueryP(tempFields, ptp, constants.QueryPRequest)
 }
@@ -176,7 +180,8 @@ func getPAndQueryP(tempFields []interface{}, ptp topology.PointToPoint, operatio
 // GetAll will open a TCP connection to the PointToPoint and send the message,
 // which includes the type of operation specified by the user.
 // The method is nonblocking and will return all tuples found in the tuple
-// space.
+// space as well as a bool to denote if there were any errors with the
+// communication.
 // NOTE: tuples is allowed to be an empty list, implying the tuple space was
 // empty.
 func GetAll(ptp topology.PointToPoint, tempFields ...interface{}) ([]Tuple, bool) {
@@ -186,7 +191,8 @@ func GetAll(ptp topology.PointToPoint, tempFields ...interface{}) ([]Tuple, bool
 // QueryAll will open a TCP connection to the PointToPoint and send the message,
 // which includes the type of operation specified by the user.
 // The method is nonblocking and will return all tuples found in the tuple
-// space.
+// space as well as a bool to denote if there were any errors with the
+// communication.
 // NOTE: tuples is allowed to be an empty list, implying the tuple space was
 // empty.
 func QueryAll(ptp topology.PointToPoint, tempFields ...interface{}) ([]Tuple, bool) {
@@ -309,8 +315,9 @@ func receiveMessageTupleList(conn net.Conn) ([]Tuple, error) {
 // the value in the tuple
 func WriteTupleToVariables(t Tuple, variables []interface{}) {
 	for i, value := range variables {
+		// Check if the value is a pointer.
 		if reflect.TypeOf(value).Kind() == reflect.Ptr {
-			//changes the value of a pointer
+			// Changes the value of a pointer
 			reflect.ValueOf(value).Elem().Set(reflect.ValueOf(t.GetFieldAt(i)))
 		}
 	}

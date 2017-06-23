@@ -45,8 +45,10 @@ func (t *Tuple) match(temp Template) bool {
 		// Extract corresponding fields from tuple and template.
 		tupleField := t.GetFieldAt(i)
 		tempField := temp.getFieldAt(i)
-		// Should tempField be a type, check if tupleField is of the same type.
+		// Check if tempField is a TypeField
 		if reflect.TypeOf(tempField) == reflect.TypeOf(TypeField{}) {
+			// Check if the type of tupleField is the same type as specified
+			// in tempField
 			if tempField.(TypeField).getType() == reflect.TypeOf(tupleField).String() {
 				continue
 			} else {

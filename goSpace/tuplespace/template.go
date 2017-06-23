@@ -6,27 +6,24 @@ import "reflect"
 // Template is used for finding tuples.
 // The template struct contains information if the number of fields of the
 // template should match the number of fields of the tuple.
-// TODO: Get rid of getMatchNumberOfFields
 type Template struct {
-	//MatchNumberOfFields bool          // Boolean to specify if number of fields should match.
 	Fields []interface{} // Field of the template.
 }
 
 // CreateTemplate will create the template and return it with the fields
 // specified by the user and set the matchNumberOfFields to true as default.
 func CreateTemplate(fields []interface{}) Template {
-	//creates copy of fields
+	// Creates copy of fields
 	tempfields := make([]interface{}, len(fields))
 	copy(tempfields, fields)
-	//replace pointers with string from reflect.type value (used to match type)
+	// Replace pointers with string from reflect.type value (used to match type)
 	for i, value := range fields {
-		//if value is a pointer
+		// Check if value is a pointer
 		if reflect.TypeOf(value).Kind() == reflect.Ptr {
-			//replace with typefield
+			// Replace with typefield
 			tempfields[i] = CreateTypeField(reflect.ValueOf(value).Elem().Type().String())
 		}
 	}
-	//template := Template{true, tempfields}
 	template := Template{tempfields}
 	return template
 }

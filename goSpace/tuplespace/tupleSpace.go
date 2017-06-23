@@ -206,7 +206,7 @@ func (ts *TupleSpace) findAllTuples(temp Template, response chan<- []Tuple, remo
 	}
 	var tuples []Tuple
 	var removeIndex []int
-	//goes through tuple space and collects matching tuples
+	// Go through tuple space and collects matching tuples
 	for i, t := range ts.tuples {
 		if t.match(temp) {
 			if remove {
@@ -216,7 +216,7 @@ func (ts *TupleSpace) findAllTuples(temp Template, response chan<- []Tuple, remo
 			tuples = append(tuples, t)
 		}
 	}
-	//removes tuples from tuple space if its a get operations
+	// Remove tuples from tuple space if it is a get operations
 	for i := len(removeIndex) - 1; i >= 0; i-- {
 		ts.removeTupleAt(removeIndex[i])
 	}
@@ -325,7 +325,7 @@ func (ts *TupleSpace) handle(conn net.Conn) {
 	}
 }
 
-// Put is a blocking method.
+// handlePut is a blocking method.
 // The method will place the tuple t in the tuple space ts.
 // The method will send a boolean value to the connection conn to tell whether
 // or not the placement succeeded
@@ -347,13 +347,13 @@ func (ts *TupleSpace) handlePut(conn net.Conn, t Tuple) {
 	}
 }
 
-// PutP is a nonblocking method.
+// handlePutP is a nonblocking method.
 // The method will try and place the tuple t in the tuple space ts.
 func (ts *TupleSpace) handlePutP(t Tuple) {
 	go ts.putP(&t)
 }
 
-// Get is a blocking method.
+// handleGet is a blocking method.
 // It will find a tuple matching the template temp and return it.
 func (ts *TupleSpace) handleGet(conn net.Conn, temp Template) {
 	defer handleRecover()
@@ -371,7 +371,7 @@ func (ts *TupleSpace) handleGet(conn net.Conn, temp Template) {
 	}
 }
 
-// GetP is a nonblocking method.
+// handleGetP is a nonblocking method.
 // It will try to find a tuple matching the template temp and remove the tuple
 // from the tuple space.
 // As it may not find it, the method will send a boolean as well as the tuple
@@ -404,7 +404,7 @@ func (ts *TupleSpace) handleGetP(conn net.Conn, temp Template) {
 	}
 }
 
-// GetAll is a nonblocking method that will remove all tuples from the tuple
+// handleGetAll is a nonblocking method that will remove all tuples from the tuple
 // space and send them in a list through the connection conn.
 func (ts *TupleSpace) handleGetAll(conn net.Conn, temp Template) {
 	defer handleRecover()
@@ -422,7 +422,7 @@ func (ts *TupleSpace) handleGetAll(conn net.Conn, temp Template) {
 	}
 }
 
-// Query is a blocking method.
+// handleQuery is a blocking method.
 // It will find a tuple matching the template temp.
 // The found tuple will be send to the connection conn.
 func (ts *TupleSpace) handleQuery(conn net.Conn, temp Template) {
@@ -441,7 +441,7 @@ func (ts *TupleSpace) handleQuery(conn net.Conn, temp Template) {
 	}
 }
 
-// QueryP is a nonblocking method.
+// handleQueryP is a nonblocking method.
 // It will try to find a tuple matching the template temp.
 // As it may not find it, the method returns a boolean as well as the tuple.
 func (ts *TupleSpace) handleQueryP(conn net.Conn, temp Template) {
@@ -472,7 +472,7 @@ func (ts *TupleSpace) handleQueryP(conn net.Conn, temp Template) {
 	}
 }
 
-// QueryAll is a blocking method that will return all tuples from the tuple
+// handleQueryAll is a blocking method that will return all tuples from the tuple
 // space in a list.
 func (ts *TupleSpace) handleQueryAll(conn net.Conn, temp Template) {
 	defer handleRecover()
