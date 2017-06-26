@@ -40,12 +40,15 @@ func pong(ownPtP topology.PointToPoint, theirPtP topology.PointToPoint) {
 
 	for {
 		// Find a "Ping" tuple in own tuple space
-		tuplespace.Get(ownPtP, "Ping")
-		// A "Ping" tuple was found.
-		fmt.Println("Ping Received.")
-		// Send back a "Pong" tuple.
-		tuplespace.Put(theirPtP, "Pong")
-		fmt.Println("Pong Send")
+		if tuplespace.Get(ownPtP, "Ping") {
+			// A "Ping" tuple was found.
+			fmt.Println("Ping Received.")
+
+			// Send back a "Pong" tuple.
+			if tuplespace.Put(theirPtP, "Pong") {
+				fmt.Println("Pong Send")
+			}
+		}
 
 		time.Sleep(500 * time.Millisecond)
 	}

@@ -39,15 +39,21 @@ func main() {
 func ping(ownPtP topology.PointToPoint, theirPtP topology.PointToPoint) {
 	// Initialise the ping-pong by sending a "Ping" tuple to the pong
 	// application's tuple space.
-	tuplespace.Put(theirPtP, "Ping")
+	if tuplespace.Put(theirPtP, "Ping") {
+		fmt.Println("Ping Send")
+	}
 	for {
 		// Find a "Pong" tuple in own tuple space
-		tuplespace.Get(ownPtP, "Pong")
-		// A "Pong" tuple was found.
-		fmt.Println("Pong recieved")
-		// Send back a "Ping" tuple.
-		tuplespace.Put(theirPtP, "Ping")
-		fmt.Println("Ping Send")
+		if tuplespace.Get(ownPtP, "Pong") {
+			// A "Pong" tuple was found.
+			fmt.Println("Pong recieved")
+
+			// Send back a "Ping" tuple.
+			if tuplespace.Put(theirPtP, "Ping") {
+				fmt.Println("Ping Send")
+			}
+		}
+
 		time.Sleep(500 * time.Millisecond)
 	}
 }
