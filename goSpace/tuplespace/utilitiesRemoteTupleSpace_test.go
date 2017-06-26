@@ -54,6 +54,17 @@ func TestPutPUtilities(t *testing.T) {
 	}
 }
 
+func TestWriteTupleToVariables(t *testing.T) {
+	tuple := CreateTuple([]interface{}{2, "hello"})
+	var i int
+	var s string
+	variables := []interface{}{&i, &s}
+	WriteTupleToVariables(tuple, variables)
+	if i != 2 || s != "hello" {
+		t.Errorf("Write tuple to variable did not work as expected")
+	}
+}
+
 func TestQueryPAndGetPUtilities(t *testing.T) {
 
 	ts := CreateTupleSpace(9052)
