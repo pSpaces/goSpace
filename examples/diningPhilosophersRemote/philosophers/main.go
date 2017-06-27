@@ -64,7 +64,7 @@ func placeForks(ptp topology.PointToPoint, n int) {
 }
 
 func philosopher(ptTable topology.PointToPoint, ptWaiter topology.PointToPoint, n int, fork1 int, fork2 int) {
-	i := 0
+	i := 1
 	for {
 		// philosopher thinks
 		fmt.Printf("Philosopher %d is thinking\n", n)

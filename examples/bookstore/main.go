@@ -9,7 +9,6 @@ import (
 )
 
 func main() {
-
 	ts := tuplespace.CreateTupleSpace(8080)
 	ptp := topology.CreatePointToPoint("Bookstore", "localhost", 8080)
 	addBooks(ptp)
@@ -17,7 +16,6 @@ func main() {
 	go cashier(ptp)
 	costumer(ptp)
 	time.Sleep(2 * time.Second)
-
 }
 
 // addBooks adds books to the store.
