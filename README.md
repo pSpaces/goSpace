@@ -64,7 +64,7 @@ Query(ptp, x1, x2, ..., xn)
 QueryP(ptp, x1, x2, ..., xn)
 QueryAll(ptp, x1, x2, ..., xn)
 ```
-Where `ptp` is a pointToPoint structure and `x1, x2, ..., xn` are values.
+For all operations `ptp` is a pointToPoint structure and `x1, x2, ..., xn` are terms. For the `put` operations the terms are values and for the remaining operations terms are either values or binding variables.
 
 Pattern matching can be achieved by passing a pointer to the variable, this by can be done by adding a `&` infront of the variable. This is used in the `bookstore` example and looks a follows
 ```go
