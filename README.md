@@ -66,10 +66,11 @@ QueryAll(ptp, x1, x2, ..., xn)
 ```
 For all operations `ptp` is a pointToPoint structure and `x1, x2, ..., xn` are terms. For the `put` operations the terms are values and for the remaining operations terms are either values or binding variables.
 
-Pattern matching can be achieved by passing a pointer to the variable, this by can be done by adding a `&` infront of the variable. This is used in the `bookstore` example and looks a follows
+Pattern matching can be achieved by passing a binding variable, which is done by passing a pointer to the variable. This by can be done by adding a `&` infront of the variable. This is used in the `bookstore` example and looks a follows
 ```go
 var i int
 book := "Of Mice and Men"
 tuplespace.Query(ptp, book, &i)
 ```
 This is used to look up the price of the book "Of Mice and Men". After the `Query` operation the value of `i` is 200.
+Note: binding variables can only be passed to get and query operations.
