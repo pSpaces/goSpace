@@ -313,6 +313,8 @@ func receiveMessageTupleList(conn net.Conn) ([]Tuple, error) {
 
 // WriteTupleToVariables will overwrite the value of pointers in varibles, to
 // the value in the tuple
+// TODO: There should be placed a lock around the variables that are being
+// changed, to ensure that mix of two tuple are written to the variables.
 func WriteTupleToVariables(t Tuple, variables []interface{}) {
 	for i, value := range variables {
 		// Check if the value is a pointer.

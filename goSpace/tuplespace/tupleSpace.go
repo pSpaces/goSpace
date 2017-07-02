@@ -211,7 +211,6 @@ func (ts *TupleSpace) findAllTuples(temp Template, response chan<- []Tuple, remo
 		if t.match(temp) {
 			if remove {
 				removeIndex = append(removeIndex, i)
-				//ts.removeTupleAt(i)
 			}
 			tuples = append(tuples, t)
 		}
