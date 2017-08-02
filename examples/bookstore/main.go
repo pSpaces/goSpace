@@ -14,7 +14,7 @@ func main() {
 	addBooks(ptp)
 	fmt.Println(ts)
 	go cashier(ptp)
-	costumer(ptp)
+	customer(ptp)
 	time.Sleep(2 * time.Second)
 }
 
@@ -35,14 +35,14 @@ func cashier(ptp topology.PointToPoint) {
 		tuplespace.Query(ptp, book, &price)
 		// Check if the priced paid is equal to what the book costs.
 		if price == i {
-			fmt.Printf("Recieved payment of %d for the book \"%s\".\n", i, book)
+			fmt.Printf("Received payment of %d for the book \"%s\".\n", i, book)
 			// Remove the book from the store.
 			tuplespace.Get(ptp, book, i)
 		}
 	}
 }
 
-func costumer(ptp topology.PointToPoint) {
+func customer(ptp topology.PointToPoint) {
 	// Search for book and save price in i
 	var i int
 	book := "Of Mice and Men"
