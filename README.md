@@ -11,12 +11,11 @@ To import the goSpace into your project, clone the repository and place it in th
 ```terminal
 GOPATH/src/
 ```
-Now that the repository has been placed correctly, we can start using the actual framework. This is done by importing the `tuplespace` and `topology` packages into your project. This will like
+Now that the repository has been placed correctly, we can start using the actual framework. This is done by importing the package `goSpace` into your project:
 
 ```go
 import (
-      "goSpace/goSpace/tuplespace"
-      "goSpace/goSpace/topology"
+      "goSpace/goSpace/"
 )
 ```
 
@@ -41,7 +40,6 @@ The remaining examples are installed and run in the same way.
 ### Running the bookstore example
 If Go and the framework has been set up and imported correctly you should see the following being printed
 ```terminal
-&{0xc420010d60 0xc42000cb10 [{[Of Mice and Men 200]}] :8080 []}
 Checked price for book "Of Mice and Men". The price is 200.
 Placed payment for book "Of Mice and Men", at the price of 200.
 Recieved payment of 200 for the book "Of Mice and Men".
