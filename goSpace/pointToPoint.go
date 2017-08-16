@@ -1,9 +1,6 @@
-package topology
+package goSpace
 
-import (
-	"strconv"
-	"strings"
-)
+import "strings"
 
 // PointToPoint contains information about the receiver, being a user specified
 // name, the IP address and the port number.
@@ -14,8 +11,8 @@ type PointToPoint struct {
 
 // CreatePointToPoint will concatenate the ip and the port to a string to create
 // an address of the receiver. The created PointToPoint is then returned.
-func CreatePointToPoint(name string, ip string, port int) PointToPoint {
-	address := strings.Join([]string{ip, strconv.Itoa(port)}, ":")
+func CreatePointToPoint(name string, ip string, port string) PointToPoint {
+	address := strings.Join([]string{ip, port}, ":")
 	pointToPoint := PointToPoint{name, address}
 	return pointToPoint
 }

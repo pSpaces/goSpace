@@ -1,6 +1,4 @@
-package tuplespace
-
-import "goSpace/goSpace/constants"
+package goSpace
 
 // WaitingClient is used as a structure for clients who performed an
 // unsuccessful Get or Query operation, in the sense that it didn't initially
@@ -20,9 +18,9 @@ type WaitingClient struct {
 func CreateWaitingClient(temp Template, tupleChan chan<- *Tuple, remove bool) WaitingClient {
 	var o string
 	if remove {
-		o = constants.GetRequest
+		o = GetRequest
 	} else {
-		o = constants.QueryRequest
+		o = QueryRequest
 	}
 
 	waitingClient := WaitingClient{template: temp, responseChan: tupleChan, operation: o}

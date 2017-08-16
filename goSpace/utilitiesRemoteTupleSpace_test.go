@@ -1,7 +1,6 @@
-package tuplespace
+package goSpace
 
 import (
-	"goSpace/goSpace/topology"
 	"reflect"
 	"testing"
 )

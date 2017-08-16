@@ -1,7 +1,6 @@
-package tuplespace
+package goSpace
 
 import (
-	"goSpace/goSpace/constants"
 	"reflect"
 	"strings"
 	"testing"
@@ -16,7 +15,7 @@ func TestCreateWaitingClientGet(t *testing.T) {
 	actualFields := make([]interface{}, 1)
 	actualFields[0] = "Field 1"
 	actualChan := make(chan<- *Tuple)
-	actualOperation := constants.GetRequest
+	actualOperation := GetRequest
 	actualWaitingClient := WaitingClient{CreateTemplate(actualFields), actualChan, actualOperation}
 
 	// Test that the two templates are equal.
@@ -45,12 +44,12 @@ func TestCreateWaitingClientQuery(t *testing.T) {
 
 	// Test that the two templates are equal.
 	operationsEqual := true
-	if strings.Compare(testWaitingClient.operation, constants.QueryRequest) != 0 {
+	if strings.Compare(testWaitingClient.operation, QueryRequest) != 0 {
 		operationsEqual = false
 	}
 
 	if !operationsEqual {
-		t.Errorf("CreateWaitingClient() passed %+v as %q, should be %q", testBool, testWaitingClient.operation, constants.QueryRequest)
+		t.Errorf("CreateWaitingClient() passed %+v as %q, should be %q", testBool, testWaitingClient.operation, QueryRequest)
 	}
 }
 
@@ -96,7 +95,7 @@ func TestGetOperation(t *testing.T) {
 	// Setup
 	testWaitingClient := createTestWaitingClient()
 
-	actualOperation := constants.GetRequest
+	actualOperation := GetRequest
 
 	testOperation := testWaitingClient.GetOperation()
 

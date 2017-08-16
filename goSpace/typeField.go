@@ -1,4 +1,4 @@
-package tuplespace
+package goSpace
 
 // TypeField encapsulate a string that specifies the type.
 type TypeField struct {

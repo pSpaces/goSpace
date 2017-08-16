@@ -1,13 +1,10 @@
-package tuplespace
+package goSpace
 
 import (
 	"encoding/gob"
 	"fmt"
-	"goSpace/goSpace/constants"
-	"goSpace/goSpace/topology"
 	"log"
 	"net"
-	"strconv"
 	"strings"
 	"sync"
 )
@@ -23,23 +20,40 @@ type TupleSpace struct {
 	waitingClients   []WaitingClient // Structure for clients that couldn't initially find a matching tuple.
 }
 
-// CreateTupleSpace will create the tuple space with the specified port and
+// NewSpace will create the tuple space with the specified url and
 // initialise the lock.
 // It will run the listen function in a go routine to listen for incoming
 // messages.
-// The tuple space ts is returned. The list of tuples is initially empty.
-func CreateTupleSpace(port int) *TupleSpace {
+// The list of tuples is initially empty.
+// It returns a pointToPoint
+func NewSpace(url string) PointToPoint {
+
 	// Register default structures for communication.
 	gob.Register(Template{})
 	gob.Register(Tuple{})
 	gob.Register(TypeField{})
 
+	// For now, we only accept port numbers
+
 	// The specified port number by the user needs to be converted to a string
-	// with the following format ":<portNumber>".
-	portNumber := strings.Join([]string{"", strconv.Itoa(port)}, ":")
-	ts := TupleSpace{muTuples: new(sync.RWMutex), muWaitingClients: new(sync.Mutex), port: portNumber}
+	// with the following format ":<port>".
+	ts := TupleSpace{muTuples: new(sync.RWMutex), muWaitingClients: new(sync.Mutex), port: strings.Join([]string{"", url}, ":")}
 	go ts.listen()
-	return &ts
+	space := CreatePointToPoint("whatever", "localhost", url)
+	return space
+}
+
+// RemoteSpace is like CreateSpace but instead of creating a space
+// It connects to a remote one
+func RemoteSpace(url string) PointToPoint {
+
+	// Register default structures for communication.
+	gob.Register(Template{})
+	gob.Register(Tuple{})
+	gob.Register(TypeField{})
+
+	space := CreatePointToPoint("whatever", "localhost", url)
+	return space
 }
 
 // Size return the number of tuples in the tuple space.
@@ -75,7 +89,7 @@ func (ts *TupleSpace) putP(t *Tuple) {
 			ts.removeClientAt(i)
 			i--
 			clientOperation := waitingClient.GetOperation()
-			if clientOperation == constants.GetRequest {
+			if clientOperation == GetRequest {
 				// Unlock before exiting the method.
 				ts.muWaitingClients.Unlock()
 				return
@@ -268,6 +282,26 @@ func (ts *TupleSpace) listen() {
 // handle will read and decode the message from the connection.
 // The decoded message will be passed on to the respective method.
 func (ts *TupleSpace) handle(conn net.Conn) {
+
+	// BEGIN DEBUG
+	//fmt.Println("DEBUG: Connnection received from ", conn.RemoteAddr(), "...")
+	//time.Sleep(3000 * time.Millisecond)
+
+	//var buf []byte //bytes.Buffer
+	//buf := make([]byte, 0, 4096)
+	//var err error
+	//io.Copy(&buf, conn)
+	//fmt.Println("total size:", buf.Len())
+	//fmt.Println("DEBUG: Extracting stuff...")
+	//buf, err = ioutil.ReadAll(conn)
+	//n, err := conn.Read(buf)
+	//fmt.Println("DEBUG: Stuff extracted...")
+	//fmt.Println(buf, n, err)
+
+	//conn.Close()
+	//return
+	// END DEBUG
+
 	// Make sure the connection closes when method returns.
 	defer conn.Close()
 
@@ -275,7 +309,7 @@ func (ts *TupleSpace) handle(conn net.Conn) {
 	dec := gob.NewDecoder(conn)
 
 	// Read the message from the connection through the decoder.
-	var message topology.Message
+	var message Message
 	errDec := dec.Decode(&message)
 
 	// Error check for receiving message.
@@ -286,35 +320,35 @@ func (ts *TupleSpace) handle(conn net.Conn) {
 	operation := message.GetOperation()
 
 	switch operation {
-	case constants.PutRequest:
+	case PutRequest:
 		// Body of message must be tuple.
 		tuple := message.GetBody().(Tuple)
 		ts.handlePut(conn, tuple)
-	case constants.PutPRequest:
+	case PutPRequest:
 		// Body of message must be tuple.
 		tuple := message.GetBody().(Tuple)
 		ts.handlePutP(tuple)
-	case constants.GetRequest:
+	case GetRequest:
 		// Body of message must be template.
 		template := message.GetBody().(Template)
 		ts.handleGet(conn, template)
-	case constants.GetPRequest:
+	case GetPRequest:
 		// Body of message must be template.
 		template := message.GetBody().(Template)
 		ts.handleGetP(conn, template)
-	case constants.GetAllRequest:
+	case GetAllRequest:
 		// Body of message must be empty.
 		template := message.GetBody().(Template)
 		ts.handleGetAll(conn, template)
-	case constants.QueryRequest:
+	case QueryRequest:
 		// Body of message must be template.
 		template := message.GetBody().(Template)
 		ts.handleQuery(conn, template)
-	case constants.QueryPRequest:
+	case QueryPRequest:
 		// Body of message must be template.
 		template := message.GetBody().(Template)
 		ts.handleQueryP(conn, template)
-	case constants.QueryAllRequest:
+	case QueryAllRequest:
 		// Body of message must be empty.
 		template := message.GetBody().(Template)
 		ts.handleQueryAll(conn, template)

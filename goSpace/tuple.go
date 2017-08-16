@@ -1,4 +1,4 @@
-package tuplespace
+package goSpace
 
 import "reflect"
 

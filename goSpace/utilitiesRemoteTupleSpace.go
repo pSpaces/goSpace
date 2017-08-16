@@ -1,10 +1,8 @@
-package tuplespace
+package goSpace
 
 import (
 	"encoding/gob"
 	"fmt"
-	"goSpace/goSpace/constants"
-	"goSpace/goSpace/topology"
 	"net"
 	"reflect"
 )
@@ -13,7 +11,7 @@ import (
 // which includes the type of operation and tuple specified by the user.
 // The method returns a boolean to inform if the operation was carried out with
 // success or not.
-func Put(ptp topology.PointToPoint, tupleFields ...interface{}) bool {
+func Put(ptp PointToPoint, tupleFields ...interface{}) bool {
 	t := CreateTuple(tupleFields)
 	conn, errDial := establishConnection(ptp)
 
@@ -26,7 +24,7 @@ func Put(ptp topology.PointToPoint, tupleFields ...interface{}) bool {
 	// Make sure the connection closes when method returns.
 	defer conn.Close()
 
-	errSendMessage := sendMessage(conn, constants.PutRequest, t)
+	errSendMessage := sendMessage(conn, PutRequest, t)
 
 	// Error check for sending message.
 	if errSendMessage != nil {
@@ -52,7 +50,7 @@ func Put(ptp topology.PointToPoint, tupleFields ...interface{}) bool {
 // operation was successful.
 // The method returns a boolean to inform if the operation was carried out with
 // any errors with communication.
-func PutP(ptp topology.PointToPoint, tupleFields ...interface{}) bool {
+func PutP(ptp PointToPoint, tupleFields ...interface{}) bool {
 	t := CreateTuple(tupleFields)
 	conn, errDial := establishConnection(ptp)
 
@@ -65,7 +63,7 @@ func PutP(ptp topology.PointToPoint, tupleFields ...interface{}) bool {
 	// Make sure the connection closes when method returns.
 	defer conn.Close()
 
-	errSendMessage := sendMessage(conn, constants.PutPRequest, t)
+	errSendMessage := sendMessage(conn, PutPRequest, t)
 
 	// Error check for sending message.
 	if errSendMessage != nil {
@@ -80,19 +78,19 @@ func PutP(ptp topology.PointToPoint, tupleFields ...interface{}) bool {
 // which includes the type of operation and template specified by the user.
 // The method returns a boolean to inform if the operation was carried out with
 // any errors with communication.
-func Get(ptp topology.PointToPoint, tempFields ...interface{}) bool {
-	return getAndQuery(tempFields, ptp, constants.GetRequest)
+func Get(ptp PointToPoint, tempFields ...interface{}) bool {
+	return getAndQuery(tempFields, ptp, GetRequest)
 }
 
 // Query will open a TCP connection to the PointToPoint and send the message,
 // which includes the type of operation and template specified by the user.
 // The method returns a boolean to inform if the operation was carried out with
 // any errors with communication.
-func Query(ptp topology.PointToPoint, tempFields ...interface{}) bool {
-	return getAndQuery(tempFields, ptp, constants.QueryRequest)
+func Query(ptp PointToPoint, tempFields ...interface{}) bool {
+	return getAndQuery(tempFields, ptp, QueryRequest)
 }
 
-func getAndQuery(tempFields []interface{}, ptp topology.PointToPoint, operation string) bool {
+func getAndQuery(tempFields []interface{}, ptp PointToPoint, operation string) bool {
 	t := CreateTemplate(tempFields)
 	conn, errDial := establishConnection(ptp)
 
@@ -129,19 +127,19 @@ func getAndQuery(tempFields []interface{}, ptp topology.PointToPoint, operation 
 // which includes the type of operation and template specified by the user.
 // The function will return two bool values. The first denotes if a tuple was
 // found, the second if there were any erors with communication.
-func GetP(ptp topology.PointToPoint, tempFields ...interface{}) (bool, bool) {
-	return getPAndQueryP(tempFields, ptp, constants.GetPRequest)
+func GetP(ptp PointToPoint, tempFields ...interface{}) (bool, bool) {
+	return getPAndQueryP(tempFields, ptp, GetPRequest)
 }
 
 // QueryP will open a TCP connection to the PointToPoint and send the message,
 // which includes the type of operation and template specified by the user.
 // The function will return two bool values. The first denotes if a tuple was
 // found, the second if there were any erors with communication.
-func QueryP(ptp topology.PointToPoint, tempFields ...interface{}) (bool, bool) {
-	return getPAndQueryP(tempFields, ptp, constants.QueryPRequest)
+func QueryP(ptp PointToPoint, tempFields ...interface{}) (bool, bool) {
+	return getPAndQueryP(tempFields, ptp, QueryPRequest)
 }
 
-func getPAndQueryP(tempFields []interface{}, ptp topology.PointToPoint, operation string) (bool, bool) {
+func getPAndQueryP(tempFields []interface{}, ptp PointToPoint, operation string) (bool, bool) {
 	t := CreateTemplate(tempFields)
 	conn, errDial := establishConnection(ptp)
 
@@ -184,8 +182,8 @@ func getPAndQueryP(tempFields []interface{}, ptp topology.PointToPoint, operatio
 // communication.
 // NOTE: tuples is allowed to be an empty list, implying the tuple space was
 // empty.
-func GetAll(ptp topology.PointToPoint, tempFields ...interface{}) ([]Tuple, bool) {
-	return getAllAndQueryAll(tempFields, ptp, constants.GetAllRequest)
+func GetAll(ptp PointToPoint, tempFields ...interface{}) ([]Tuple, bool) {
+	return getAllAndQueryAll(tempFields, ptp, GetAllRequest)
 }
 
 // QueryAll will open a TCP connection to the PointToPoint and send the message,
@@ -195,11 +193,11 @@ func GetAll(ptp topology.PointToPoint, tempFields ...interface{}) ([]Tuple, bool
 // communication.
 // NOTE: tuples is allowed to be an empty list, implying the tuple space was
 // empty.
-func QueryAll(ptp topology.PointToPoint, tempFields ...interface{}) ([]Tuple, bool) {
-	return getAllAndQueryAll(tempFields, ptp, constants.QueryAllRequest)
+func QueryAll(ptp PointToPoint, tempFields ...interface{}) ([]Tuple, bool) {
+	return getAllAndQueryAll(tempFields, ptp, QueryAllRequest)
 }
 
-func getAllAndQueryAll(tempFields []interface{}, ptp topology.PointToPoint, operation string) ([]Tuple, bool) {
+func getAllAndQueryAll(tempFields []interface{}, ptp PointToPoint, operation string) ([]Tuple, bool) {
 	t := CreateTemplate(tempFields)
 	conn, errDial := establishConnection(ptp)
 
@@ -236,7 +234,7 @@ func getAllAndQueryAll(tempFields []interface{}, ptp topology.PointToPoint, oper
 
 // establishConnection will establish a connection to the PointToPoint ptp and
 // return the Conn and error.
-func establishConnection(ptp topology.PointToPoint) (net.Conn, error) {
+func establishConnection(ptp PointToPoint) (net.Conn, error) {
 	addr := ptp.GetAddress()
 
 	// Establish a connection to the PointToPoint using TCP to ensure reliability.
@@ -255,7 +253,7 @@ func sendMessage(conn net.Conn, operation string, t interface{}) error {
 	gob.Register(TypeField{})
 
 	// Generate the message.
-	message := topology.CreateMessage(operation, t)
+	message := CreateMessage(operation, t)
 
 	// Sends the message to the connection through the encoder.
 	errEnc := enc.Encode(message)

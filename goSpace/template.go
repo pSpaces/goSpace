@@ -1,5 +1,5 @@
 // TODO: Description of package.
-package tuplespace
+package goSpace
 
 import "reflect"
 

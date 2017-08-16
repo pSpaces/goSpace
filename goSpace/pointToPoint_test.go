@@ -1,4 +1,4 @@
-package topology
+package goSpace
 
 import (
 	"reflect"

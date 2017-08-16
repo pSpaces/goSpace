@@ -1,7 +1,6 @@
-package topology
+package goSpace
 
 import (
-	"goSpace/goSpace/constants"
 	"reflect"
 	"testing"
 )
