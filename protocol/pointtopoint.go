@@ -1,4 +1,4 @@
-package goSpace
+package protocol
 
 import "strings"
 

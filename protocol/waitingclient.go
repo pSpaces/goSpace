@@ -1,4 +1,8 @@
-package goSpace
+package protocol
+
+import (
+	. "github.com/luhac/gospace/shared"
+)
 
 // WaitingClient is used as a structure for clients who performed an
 // unsuccessful Get or Query operation, in the sense that it didn't initially

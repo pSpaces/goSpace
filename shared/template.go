@@ -1,7 +1,9 @@
 // TODO: Description of package.
-package goSpace
+package shared
 
-import "reflect"
+import (
+	"reflect"
+)
 
 // Template is used for finding tuples.
 // The template struct contains information if the number of fields of the

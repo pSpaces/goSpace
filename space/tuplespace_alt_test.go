@@ -1,6 +1,8 @@
-package goSpace
+package space
 
 import (
+	. "github.com/luhac/gospace/protocol"
+	. "github.com/luhac/gospace/shared"
 	"reflect"
 	"testing"
 )
@@ -10,7 +12,7 @@ func TestPutUtilities(t *testing.T) {
 	if !(ts.Size() == 0) {
 		t.Errorf("Tuple space is not empty")
 	}
-	ptp := topology.CreatePointToPoint("Bookstore", "localhost", 9050)
+	ptp := CreatePointToPoint("Bookstore", "localhost", 9050)
 	Put(ptp, "hello", false)
 	if !(reflect.DeepEqual(CreateTuple([]interface{}{"hello", false}), ts.tuples[0])) {
 		t.Errorf("Tuple space is not empty")
@@ -22,7 +24,7 @@ func TestQueryAndGetUtilities(t *testing.T) {
 	if !(ts.Size() == 0) {
 		t.Errorf("Tuple space is not empty")
 	}
-	ptp := topology.CreatePointToPoint("Bookstore", "localhost", 9051)
+	ptp := CreatePointToPoint("Bookstore", "localhost", 9051)
 	Put(ptp, "hello", false)
 	var s string
 	querySucceed := Query(ptp, &s, false)
@@ -44,7 +46,7 @@ func TestPutPUtilities(t *testing.T) {
 	if !(ts.Size() == 0) {
 		t.Errorf("Tuple space is not empty")
 	}
-	ptp := topology.CreatePointToPoint("Bookstore", "localhost", 9053)
+	ptp := CreatePointToPoint("Bookstore", "localhost", 9053)
 	PutP(ptp, "hello", false)
 	var b bool
 	Get(ptp, "hello", &b)
@@ -70,7 +72,7 @@ func TestQueryPAndGetPUtilities(t *testing.T) {
 	if !(ts.Size() == 0) {
 		t.Errorf("Tuple space is not empty")
 	}
-	ptp := topology.CreatePointToPoint("Bookstore", "localhost", 9052)
+	ptp := CreatePointToPoint("Bookstore", "localhost", 9052)
 	Put(ptp, "hello", false)
 	var s string
 	queryPResult, queryPSucceed := QueryP(ptp, &s, false)
@@ -100,7 +102,7 @@ func TestGetAllAndQueryAll(t *testing.T) {
 	if !(ts.Size() == 0) {
 		t.Errorf("Tuple space is not empty")
 	}
-	ptp := topology.CreatePointToPoint("Bookstore", "localhost", 9054)
+	ptp := CreatePointToPoint("Bookstore", "localhost", 9054)
 	Put(ptp, 2, 2)
 	Put(ptp, 2, 2)
 	Put(ptp, 2, 3)

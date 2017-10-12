@@ -1,6 +1,8 @@
-package goSpace
+package shared
 
-import "reflect"
+import (
+	"reflect"
+)
 
 // Tuple contains a set of fields, where fields can be any primitive or type.
 // A tuple is used to store information which is placed in a tuple space.
@@ -33,7 +35,7 @@ func (t *Tuple) SetFieldAt(i int, val interface{}) {
 
 // match will return the boolean value according to if the template temp match
 // the tuple or not.
-func (t *Tuple) match(temp Template) bool {
+func (t *Tuple) Match(temp Template) bool {
 	if t.Length() != temp.length() {
 		return false
 	}

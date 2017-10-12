@@ -1,4 +1,4 @@
-package goSpace
+package protocol
 
 // Message is the package that is send across a connection.
 // It contains the type of message, denoted by operation and either a tuple or

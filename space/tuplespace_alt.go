@@ -1,8 +1,10 @@
-package goSpace
+package space
 
 import (
 	"encoding/gob"
 	"fmt"
+	. "github.com/luhac/gospace/protocol"
+	. "github.com/luhac/gospace/shared"
 	"net"
 	"reflect"
 )
@@ -118,7 +120,7 @@ func getAndQuery(tempFields []interface{}, ptp PointToPoint, operation string) b
 		fmt.Println("ErrReceiveMessage:", errReceiveMessage)
 		return false
 	}
-	WriteTupleToVariables(tuple, tempFields)
+	writeTupleToVariables(tuple, tempFields)
 	// Return result.
 	return true
 }
@@ -168,7 +170,7 @@ func getPAndQueryP(tempFields []interface{}, ptp PointToPoint, operation string)
 		return false, false
 	}
 	if b {
-		WriteTupleToVariables(tuple, tempFields)
+		writeTupleToVariables(tuple, tempFields)
 	}
 
 	// Return result.
@@ -313,7 +315,7 @@ func receiveMessageTupleList(conn net.Conn) ([]Tuple, error) {
 // the value in the tuple
 // TODO: There should be placed a lock around the variables that are being
 // changed, to ensure that mix of two tuple are written to the variables.
-func WriteTupleToVariables(t Tuple, variables []interface{}) {
+func writeTupleToVariables(t Tuple, variables []interface{}) {
 	for i, value := range variables {
 		// Check if the value is a pointer.
 		if reflect.TypeOf(value).Kind() == reflect.Ptr {

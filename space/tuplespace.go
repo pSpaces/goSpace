@@ -1,11 +1,12 @@
-package goSpace
+package space
 
 import (
 	"encoding/gob"
 	"fmt"
+	. "github.com/luhac/gospace/protocol"
+	. "github.com/luhac/gospace/shared"
 	"log"
 	"net"
-	"strings"
 	"sync"
 )
 
@@ -18,42 +19,6 @@ type TupleSpace struct {
 	tuples           []Tuple         // Tuples in the tuple space.
 	port             string          // Port number of the tuple space.
 	waitingClients   []WaitingClient // Structure for clients that couldn't initially find a matching tuple.
-}
-
-// NewSpace will create the tuple space with the specified url and
-// initialise the lock.
-// It will run the listen function in a go routine to listen for incoming
-// messages.
-// The list of tuples is initially empty.
-// It returns a pointToPoint
-func NewSpace(url string) PointToPoint {
-
-	// Register default structures for communication.
-	gob.Register(Template{})
-	gob.Register(Tuple{})
-	gob.Register(TypeField{})
-
-	// For now, we only accept port numbers
-
-	// The specified port number by the user needs to be converted to a string
-	// with the following format ":<port>".
-	ts := TupleSpace{muTuples: new(sync.RWMutex), muWaitingClients: new(sync.Mutex), port: strings.Join([]string{"", url}, ":")}
-	go ts.listen()
-	space := CreatePointToPoint("whatever", "localhost", url)
-	return space
-}
-
-// RemoteSpace is like CreateSpace but instead of creating a space
-// It connects to a remote one
-func RemoteSpace(url string) PointToPoint {
-
-	// Register default structures for communication.
-	gob.Register(Template{})
-	gob.Register(Tuple{})
-	gob.Register(TypeField{})
-
-	space := CreatePointToPoint("whatever", "localhost", url)
-	return space
 }
 
 // Size return the number of tuples in the tuple space.
@@ -79,7 +44,7 @@ func (ts *TupleSpace) putP(t *Tuple) {
 		// Extract the template from the waiting client and check if it
 		// matches the tuple.
 		temp := waitingClient.GetTemplate()
-		if t.match(temp) {
+		if t.Match(temp) {
 			// If this is reached, the tuple matched the template and the
 			// tuple is send to the response channel of the waiting client.
 			clientResponse := waitingClient.GetResponseChan()
@@ -186,7 +151,7 @@ func (ts *TupleSpace) findTuple(temp Template, remove bool) *Tuple {
 	}
 
 	for i, t := range ts.tuples {
-		if t.match(temp) {
+		if t.Match(temp) {
 			if remove {
 				ts.removeTupleAt(i)
 			}
@@ -222,7 +187,7 @@ func (ts *TupleSpace) findAllTuples(temp Template, response chan<- []Tuple, remo
 	var removeIndex []int
 	// Go through tuple space and collects matching tuples
 	for i, t := range ts.tuples {
-		if t.match(temp) {
+		if t.Match(temp) {
 			if remove {
 				removeIndex = append(removeIndex, i)
 			}
@@ -251,7 +216,7 @@ func (ts *TupleSpace) removeTupleAt(i int) {
 
 // listen will listen and accept all incoming connections. Once a connection has
 // been established, the connection is passed on to the handler.
-func (ts *TupleSpace) listen() {
+func (ts *TupleSpace) Listen() {
 
 	// Create the listener to listen on the tuple space's port and using TCP.
 	listener, errListen := net.Listen("tcp", ts.port)

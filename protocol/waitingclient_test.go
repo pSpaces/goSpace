@@ -1,6 +1,7 @@
-package goSpace
+package protocol
 
 import (
+	. "github.com/luhac/gospace/shared"
 	"reflect"
 	"strings"
 	"testing"
