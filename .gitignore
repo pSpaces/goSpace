@@ -1,2 +1,4 @@
+tags
 
-examples/diningPhilosophers2/main.go
+bin/
+tmp/
