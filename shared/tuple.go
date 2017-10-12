@@ -33,20 +33,20 @@ func (t *Tuple) SetFieldAt(i int, val interface{}) {
 	t.Fields[i] = val
 }
 
-// match will return the boolean value according to if the template temp match
+// Match will return the boolean value according to if the template temp match
 // the tuple or not.
 func (t *Tuple) Match(temp Template) bool {
-	if t.Length() != temp.length() {
+	if t.Length() != temp.Length() {
 		return false
 	}
 
 	// Run through corresponding fields of tuple and template to see if they are
 	// matching.
-	for i := 0; i < temp.length(); i++ {
+	for i := 0; i < temp.Length(); i++ {
 		// Check if the field of the template is a formal or actual field.
 		// Extract corresponding fields from tuple and template.
 		tupleField := t.GetFieldAt(i)
-		tempField := temp.getFieldAt(i)
+		tempField := temp.GetFieldAt(i)
 		// Check if tempField is a TypeField
 		if reflect.TypeOf(tempField) == reflect.TypeOf(TypeField{}) {
 			// Check if the type of tupleField is the same type as specified
@@ -61,4 +61,10 @@ func (t *Tuple) Match(temp Template) bool {
 		}
 	}
 	return true
+}
+
+type Intertuple interface {
+	Length() int
+	GetFieldAt(i int) interface{}
+	SetFieldAt(i int, val interface{})
 }

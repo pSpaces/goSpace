@@ -1,4 +1,3 @@
-// TODO: Description of package.
 package shared
 
 import (
@@ -31,11 +30,16 @@ func CreateTemplate(fields []interface{}) Template {
 }
 
 // length returns the amount of fields of the template.
-func (temp *Template) length() int {
+func (temp *Template) Length() int {
 	return len(temp.Fields)
 }
 
 // getFieldAt will return the field at position i in fields of the template.
-func (temp *Template) getFieldAt(i int) interface{} {
+func (temp *Template) GetFieldAt(i int) interface{} {
 	return temp.Fields[i]
+}
+
+type Intertemplate interface {
+	Length() int
+	GetFieldAt(i int) interface{}
 }

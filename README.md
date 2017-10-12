@@ -18,27 +18,32 @@ import (
 ```
 
 ## goSpace API
-The goSpace API follows the Space API Specification. It contains the following tuple space operations:
+
+The goSpace API follows the Space API Specification. It contains the following operations:
 ```go
-Put(ptp, x_1, x_2, ..., x_n)
-PutP(ptp, x_1, x_2, ..., x_n)
-Get(ptp, x_1, x_2, ..., x_n)
-GetP(ptp, x_1, x_2, ..., x_n)
-GetAll(ptp, x_1, x_2, ..., x_n)
-Query(ptp, x_1, x_2, ..., x_n)
-QueryP(ptp, x_1, x_2, ..., x_n)
-QueryAll(ptp, x_1, x_2, ..., x_n)
+Put(x_1, x_2, ..., x_n)
+PutP(x_1, x_2, ..., x_n)
+Get(x_1, x_2, ..., x_n)
+GetP(x_1, x_2, ..., x_n)
+GetAll(x_1, x_2, ..., x_n)
+Query(x_1, x_2, ..., x_n)
+QueryP(x_1, x_2, ..., x_n)
+QueryAll(x_1, x_2, ..., x_n)
 ```
+A space can be created by using `NewSpace` for creating a local space, or `NewRemoteSpace` for connecting to a remote space. For example:
+```go
+spc := NewSpace("8080")
+```
+
+All operations act on a `Space` structures and `x_1, x_2, ..., x_n` are terms in a tuple.
 
 Operations such as `Put`, `Get`, and so forth are blocking operations.
 
 Operations postfixed by a `P` such as `PutP`, `GetP`, and so forth are non-blocking operations.
 
-For all operations `ptp` is a PointToPoint structure and `x_1, x_2, ..., x_n` are terms.
-
 For `Put` and `PutP` operations, the terms are values and for the remaining operations terms are either values or binding variables.
 
-Pattern matching can be achieved by passing a binding variable, that is, passing a pointer to a variabe by adding a `&` infront of the variable.
+Pattern matching can be achieved by passing a binding variable, that is, passing a pointer to a variabe by adding an `&` infront of the variable.
 
 Binding variables can only be passed to `Get*` and `Query*` operations.
 
