@@ -3,8 +3,8 @@ package space
 import (
 	"encoding/gob"
 	"fmt"
-	. "github.com/luhac/gospace/protocol"
-	. "github.com/luhac/gospace/shared"
+	. "github.com/pspaces/gospace/protocol"
+	. "github.com/pspaces/gospace/shared"
 	"log"
 	"net"
 	"sync"

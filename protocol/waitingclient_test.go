@@ -1,7 +1,7 @@
 package protocol
 
 import (
-	. "github.com/luhac/gospace/shared"
+	. "github.com/pspaces/gospace/shared"
 	"reflect"
 	"strings"
 	"testing"

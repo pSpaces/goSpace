@@ -1,8 +1,8 @@
 package gospace
 
 import (
-	shr "github.com/luhac/gospace/shared"
-	spc "github.com/luhac/gospace/space"
+	shr "github.com/pspaces/gospace/shared"
+	spc "github.com/pspaces/gospace/space"
 )
 
 type Space = spc.Space

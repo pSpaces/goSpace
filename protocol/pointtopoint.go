@@ -1,6 +1,8 @@
 package protocol
 
-import "strings"
+import (
+	"strings"
+)
 
 // PointToPoint contains information about the receiver, being a user specified
 // name, the IP address and the port number.

@@ -7,13 +7,13 @@ goSpace, a pSpace implementation in Go.
 To get goSpace, do:
 
 ```terminal
-go get -u github.com/luhac/gospace
+go get -u github.com/pspaces/gospace
 ```
 To import goSpace into your project, add:
 
 ```go
 import (
-      . "github.com/luhac/gospace"
+      . "github.com/pspaces/gospace"
 )
 ```
 
@@ -48,7 +48,7 @@ Pattern matching can be achieved by passing a binding variable, that is, passing
 Binding variables can only be passed to `Get*` and `Query*` operations.
 
 ## Space API Specification
-The specification for the pSpace Space API can be found [here](https://github.com/pSpaces/Programming-with-Spaces/blob/master/guide.md).
+The specification for the pSpace Space API can be found [here](https://github.com/pspaces/Programming-with-Spaces/blob/master/guide.md).
 
 ## Examples
-Examples and cases for goSpace can be found [here](https://github.com/luhac/gospace-examples).
+Examples and cases for goSpace can be found [here](https://github.com/pspaces/gospace-examples).

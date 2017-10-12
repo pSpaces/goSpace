@@ -2,8 +2,8 @@ package space
 
 import (
 	"encoding/gob"
-	. "github.com/luhac/gospace/protocol"
-	. "github.com/luhac/gospace/shared"
+	. "github.com/pspaces/gospace/protocol"
+	. "github.com/pspaces/gospace/shared"
 	"strings"
 	"sync"
 )
