@@ -4,6 +4,12 @@ import (
 	"reflect"
 )
 
+// Intertemplate an interface for manipulating templates.
+type Intertemplate interface {
+	Length() int
+	GetFieldAt(i int) interface{}
+}
+
 // Template is used for finding tuples.
 // The template struct contains information if the number of fields of the
 // template should match the number of fields of the tuple.
@@ -29,17 +35,12 @@ func CreateTemplate(fields []interface{}) Template {
 	return template
 }
 
-// length returns the amount of fields of the template.
+// Length returns the amount of fields of the template.
 func (temp *Template) Length() int {
 	return len(temp.Fields)
 }
 
-// getFieldAt will return the field at position i in fields of the template.
+// GetFieldAt will return the field at position i in fields of the template.
 func (temp *Template) GetFieldAt(i int) interface{} {
 	return temp.Fields[i]
-}
-
-type Intertemplate interface {
-	Length() int
-	GetFieldAt(i int) interface{}
 }

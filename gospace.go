@@ -9,10 +9,12 @@ type Space = spc.Space
 type Tuple = shr.Tuple
 type Template = shr.Template
 
+// NewSpace creates a structure that represents a space.
 func NewSpace(name string) Space {
 	return spc.NewSpace(name)
 }
 
+// NewSpace creates a structure that represents a remote space.
 func NewRemoteSpace(name string) Space {
 	return spc.NewRemoteSpace(name)
 }
@@ -22,7 +24,8 @@ type SpaceInterface interface {
 	spc.Interspace
 }
 
-func CreateTuple(fields []interface{}) Tuple {
+// CreateTuple creates a structure that represents a tuple.
+func CreateTuple(fields ...interface{}) Tuple {
 	return shr.CreateTuple(fields)
 }
 
@@ -31,7 +34,8 @@ type TupleInterface interface {
 	shr.Intertuple
 }
 
-func CreateTemplate(fields []interface{}) Template {
+// CreateTemplate creates a structure that represents a template.
+func CreateTemplate(fields ...interface{}) Template {
 	return shr.CreateTemplate(fields)
 }
 

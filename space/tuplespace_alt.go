@@ -7,7 +7,42 @@ import (
 	. "github.com/pspaces/gospace/shared"
 	"net"
 	"reflect"
+	"strings"
+	"sync"
 )
+
+// NewSpaceAlt creates a representation of a new tuple space.
+func NewSpaceAlt(url string) (ptp PointToPoint) {
+	registerTypes()
+
+	// For now, we only accept port numbers
+	// The specified port number by the user needs to be converted to a string
+	// with the following format ":<port>".
+	ts := TupleSpace{muTuples: new(sync.RWMutex), muWaitingClients: new(sync.Mutex), port: strings.Join([]string{"", url}, ":")}
+
+	go ts.Listen()
+
+	ptp = CreatePointToPoint("whatever", "localhost", url)
+
+	return ptp
+}
+
+// NewRemoteSpaceAlt creates a representaiton of a remote tuple space.
+func NewRemoteSpaceAlt(url string) (ptp PointToPoint) {
+	registerTypes()
+
+	ptp = CreatePointToPoint("whatever", "localhost", url)
+
+	return ptp
+}
+
+// registerTypes registers all the types necessary for the implementation.
+func registerTypes() {
+	// Register default structures for communication.
+	gob.Register(Template{})
+	gob.Register(Tuple{})
+	gob.Register(TypeField{})
+}
 
 // Put will open a TCP connection to the PointToPoint and send the message,
 // which includes the type of operation and tuple specified by the user.
@@ -311,7 +346,7 @@ func receiveMessageTupleList(conn net.Conn) ([]Tuple, error) {
 	return tuples, errDec
 }
 
-// WriteTupleToVariables will overwrite the value of pointers in varibles, to
+// writeTupleToVariables will overwrite the value of pointers in varibles, to
 // the value in the tuple
 // TODO: There should be placed a lock around the variables that are being
 // changed, to ensure that mix of two tuple are written to the variables.

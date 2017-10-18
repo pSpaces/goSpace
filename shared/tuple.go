@@ -4,6 +4,13 @@ import (
 	"reflect"
 )
 
+// Intertuple defines an interface for manipulating tuples.
+type Intertuple interface {
+	Length() int
+	GetFieldAt(i int) interface{}
+	SetFieldAt(i int, val interface{})
+}
+
 // Tuple contains a set of fields, where fields can be any primitive or type.
 // A tuple is used to store information which is placed in a tuple space.
 type Tuple struct {
@@ -61,10 +68,4 @@ func (t *Tuple) Match(temp Template) bool {
 		}
 	}
 	return true
-}
-
-type Intertuple interface {
-	Length() int
-	GetFieldAt(i int) interface{}
-	SetFieldAt(i int, val interface{})
 }
