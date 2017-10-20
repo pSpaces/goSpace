@@ -6,7 +6,6 @@ import (
 	. "github.com/pspaces/gospace/protocol"
 	. "github.com/pspaces/gospace/shared"
 	"net"
-	"reflect"
 	"strings"
 	"sync"
 )
@@ -49,7 +48,7 @@ func registerTypes() {
 // The method returns a boolean to inform if the operation was carried out with
 // success or not.
 func Put(ptp PointToPoint, tupleFields ...interface{}) bool {
-	t := CreateTuple(tupleFields)
+	t := CreateTuple(tupleFields...)
 	conn, errDial := establishConnection(ptp)
 
 	// Error check for establishing connection.
@@ -88,7 +87,7 @@ func Put(ptp PointToPoint, tupleFields ...interface{}) bool {
 // The method returns a boolean to inform if the operation was carried out with
 // any errors with communication.
 func PutP(ptp PointToPoint, tupleFields ...interface{}) bool {
-	t := CreateTuple(tupleFields)
+	t := CreateTuple(tupleFields...)
 	conn, errDial := establishConnection(ptp)
 
 	// Error check for establishing connection.
@@ -116,7 +115,7 @@ func PutP(ptp PointToPoint, tupleFields ...interface{}) bool {
 // The method returns a boolean to inform if the operation was carried out with
 // any errors with communication.
 func Get(ptp PointToPoint, tempFields ...interface{}) bool {
-	return getAndQuery(tempFields, ptp, GetRequest)
+	return getAndQuery(ptp, GetRequest, tempFields...)
 }
 
 // Query will open a TCP connection to the PointToPoint and send the message,
@@ -124,11 +123,11 @@ func Get(ptp PointToPoint, tempFields ...interface{}) bool {
 // The method returns a boolean to inform if the operation was carried out with
 // any errors with communication.
 func Query(ptp PointToPoint, tempFields ...interface{}) bool {
-	return getAndQuery(tempFields, ptp, QueryRequest)
+	return getAndQuery(ptp, QueryRequest, tempFields...)
 }
 
-func getAndQuery(tempFields []interface{}, ptp PointToPoint, operation string) bool {
-	t := CreateTemplate(tempFields)
+func getAndQuery(ptp PointToPoint, operation string, tempFields ...interface{}) bool {
+	t := CreateTemplate(tempFields...)
 	conn, errDial := establishConnection(ptp)
 
 	// Error check for establishing connection.
@@ -155,7 +154,8 @@ func getAndQuery(tempFields []interface{}, ptp PointToPoint, operation string) b
 		fmt.Println("ErrReceiveMessage:", errReceiveMessage)
 		return false
 	}
-	writeTupleToVariables(tuple, tempFields)
+	tuple.WriteToVariables(tempFields...)
+
 	// Return result.
 	return true
 }
@@ -165,7 +165,7 @@ func getAndQuery(tempFields []interface{}, ptp PointToPoint, operation string) b
 // The function will return two bool values. The first denotes if a tuple was
 // found, the second if there were any erors with communication.
 func GetP(ptp PointToPoint, tempFields ...interface{}) (bool, bool) {
-	return getPAndQueryP(tempFields, ptp, GetPRequest)
+	return getPAndQueryP(ptp, GetPRequest, tempFields...)
 }
 
 // QueryP will open a TCP connection to the PointToPoint and send the message,
@@ -173,11 +173,11 @@ func GetP(ptp PointToPoint, tempFields ...interface{}) (bool, bool) {
 // The function will return two bool values. The first denotes if a tuple was
 // found, the second if there were any erors with communication.
 func QueryP(ptp PointToPoint, tempFields ...interface{}) (bool, bool) {
-	return getPAndQueryP(tempFields, ptp, QueryPRequest)
+	return getPAndQueryP(ptp, QueryPRequest, tempFields...)
 }
 
-func getPAndQueryP(tempFields []interface{}, ptp PointToPoint, operation string) (bool, bool) {
-	t := CreateTemplate(tempFields)
+func getPAndQueryP(ptp PointToPoint, operation string, tempFields ...interface{}) (bool, bool) {
+	t := CreateTemplate(tempFields...)
 	conn, errDial := establishConnection(ptp)
 
 	// Error check for establishing connection.
@@ -204,8 +204,9 @@ func getPAndQueryP(tempFields []interface{}, ptp PointToPoint, operation string)
 		fmt.Println("ErrReceiveMessage:", errReceiveMessage)
 		return false, false
 	}
+
 	if b {
-		writeTupleToVariables(tuple, tempFields)
+		tuple.WriteToVariables(tempFields...)
 	}
 
 	// Return result.
@@ -220,7 +221,7 @@ func getPAndQueryP(tempFields []interface{}, ptp PointToPoint, operation string)
 // NOTE: tuples is allowed to be an empty list, implying the tuple space was
 // empty.
 func GetAll(ptp PointToPoint, tempFields ...interface{}) ([]Tuple, bool) {
-	return getAllAndQueryAll(tempFields, ptp, GetAllRequest)
+	return getAllAndQueryAll(ptp, GetAllRequest, tempFields...)
 }
 
 // QueryAll will open a TCP connection to the PointToPoint and send the message,
@@ -231,11 +232,11 @@ func GetAll(ptp PointToPoint, tempFields ...interface{}) ([]Tuple, bool) {
 // NOTE: tuples is allowed to be an empty list, implying the tuple space was
 // empty.
 func QueryAll(ptp PointToPoint, tempFields ...interface{}) ([]Tuple, bool) {
-	return getAllAndQueryAll(tempFields, ptp, QueryAllRequest)
+	return getAllAndQueryAll(ptp, QueryAllRequest, tempFields...)
 }
 
-func getAllAndQueryAll(tempFields []interface{}, ptp PointToPoint, operation string) ([]Tuple, bool) {
-	t := CreateTemplate(tempFields)
+func getAllAndQueryAll(ptp PointToPoint, operation string, tempFields ...interface{}) ([]Tuple, bool) {
+	t := CreateTemplate(tempFields...)
 	conn, errDial := establishConnection(ptp)
 
 	// Error check for establishing connection.
@@ -344,18 +345,4 @@ func receiveMessageTupleList(conn net.Conn) ([]Tuple, error) {
 	errDec := dec.Decode(&tuples)
 
 	return tuples, errDec
-}
-
-// writeTupleToVariables will overwrite the value of pointers in varibles, to
-// the value in the tuple
-// TODO: There should be placed a lock around the variables that are being
-// changed, to ensure that mix of two tuple are written to the variables.
-func writeTupleToVariables(t Tuple, variables []interface{}) {
-	for i, value := range variables {
-		// Check if the value is a pointer.
-		if reflect.TypeOf(value).Kind() == reflect.Ptr {
-			// Changes the value of a pointer
-			reflect.ValueOf(value).Elem().Set(reflect.ValueOf(t.GetFieldAt(i)))
-		}
-	}
 }

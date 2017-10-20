@@ -93,7 +93,8 @@ func (e SpaceError) Operation() bool {
 
 // Error prints the error message represented by SpaceError.
 func (e SpaceError) Error() string {
-	return fmt.Sprintf("%s: %s(%s).%s: %s.", e.pkg, "Space", e.sid, e.fun, e.msg)
+	sep := "  "
+	return fmt.Sprintf("\n%s%s:\n%s%s%s(%s).%s: %s.", sep, e.pkg, sep, sep, "Space", e.sid, e.fun, e.msg)
 }
 
 // getCalleInfo determines the package and function names associated to a function call.

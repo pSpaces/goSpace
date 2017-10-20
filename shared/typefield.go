@@ -1,17 +1,36 @@
 package shared
 
-// TypeField encapsulate a string that specifies the type.
+import (
+	"reflect"
+)
+
+// typeMap maintains a map of registered types.
+var typeMap = make(map[string]reflect.Type)
+
+// TypeField encapsulate a type.
 type TypeField struct {
-	IsType string // Field of the tuple.
+	TypeStr string
 }
 
-// CreateTypeField will create the TypeField and return it.
-func CreateTypeField(isType string) TypeField {
-	typeField := TypeField{isType}
-	return typeField
+// CreateTypeField creates an encapsulation of a type.
+func CreateTypeField(t reflect.Type) TypeField {
+	ts := t.String()
+	tf := TypeField{ts}
+
+	_, exists := typeMap[ts]
+	if !exists {
+		typeMap[ts] = t
+	}
+
+	return tf
 }
 
-// getType will return the type of the TypeField.
-func (t TypeField) getType() string {
-	return t.IsType
+// GetType returns a type associated to this Typefield.
+func (tf TypeField) GetType() reflect.Type {
+	return typeMap[tf.TypeStr]
+}
+
+// String returns the type string of this TypeField.
+func (tf TypeField) String() string {
+	return tf.TypeStr
 }

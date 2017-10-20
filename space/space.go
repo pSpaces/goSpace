@@ -132,7 +132,7 @@ func (s *Space) Query(t ...interface{}) (tp Tuple, e error) {
 // RawQuery returns the implementation result tp and error state e.
 func (s *Space) RawQuery(t ...interface{}) (tp interface{}, e interface{}) {
 	e = Query((*s).p, t)
-	tp = TupleFromTemplate(t)
+	tp = TupleFromTemplate(t...)
 	return tp, e
 }
 
@@ -160,7 +160,7 @@ func (s *Space) PutP(t ...interface{}) (tp Tuple, e error) {
 // RawPut performs a non-blocking placement of a tuple t into space s without any error checking.
 // RawPut returns the implementation result tp and error state e.
 func (s *Space) RawPutP(t ...interface{}) (tp interface{}, e interface{}) {
-	tp = TupleFromTemplate(t)
+	tp = TupleFromTemplate(t...)
 	e = PutP((*s).p, t...)
 	return tp, e
 }
@@ -190,7 +190,7 @@ func (s *Space) GetP(t ...interface{}) (tp Tuple, e error) {
 // RawGetP returns the implementation result tp and error state e.
 func (s *Space) RawGetP(t ...interface{}) (tp interface{}, e interface{}) {
 	_, e = GetP((*s).p, t...)
-	tp = TupleFromTemplate(t)
+	tp = TupleFromTemplate(t...)
 	return tp, e
 }
 
@@ -219,7 +219,7 @@ func (s *Space) QueryP(t ...interface{}) (tp Tuple, e error) {
 // RawQueryP returns the implementation result tp and error state e.
 func (s *Space) RawQueryP(t ...interface{}) (tp interface{}, e interface{}) {
 	_, e = QueryP((*s).p, t...)
-	tp = TupleFromTemplate(t)
+	tp = TupleFromTemplate(t...)
 	return tp, e
 }
 
@@ -336,13 +336,13 @@ func TupleFromTemplate(t ...interface{}) (tp Tuple) {
 
 	for i, value := range t {
 		if reflect.TypeOf(value).Kind() == reflect.Ptr {
-			fields[i] = reflect.ValueOf(value).Elem()
+			fields[i] = (reflect.ValueOf(value).Elem().Interface()).(interface{})
 		} else {
 			fields[i] = value
 		}
 	}
 
-	tp = CreateTuple(fields)
+	tp = CreateTuple(fields...)
 
 	return tp
 }

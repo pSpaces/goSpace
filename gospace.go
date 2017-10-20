@@ -26,7 +26,7 @@ type SpaceInterface interface {
 
 // CreateTuple creates a structure that represents a tuple.
 func CreateTuple(fields ...interface{}) Tuple {
-	return shr.CreateTuple(fields)
+	return shr.CreateTuple(fields...)
 }
 
 // TupleInterface contains all interfaces that can operate on a tuple.
@@ -36,7 +36,7 @@ type TupleInterface interface {
 
 // CreateTemplate creates a structure that represents a template.
 func CreateTemplate(fields ...interface{}) Template {
-	return shr.CreateTemplate(fields)
+	return shr.CreateTemplate(fields...)
 }
 
 // TemplateInterface contains all interfaces that can operate on a template.
