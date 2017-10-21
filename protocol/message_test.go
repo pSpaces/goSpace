@@ -11,7 +11,7 @@ func TestCreateMessage(t *testing.T) {
 	testMessage := createTestMessage()
 
 	// Create Message manually.
-	actualOperation := constants.GetRequest
+	actualOperation := GetRequest
 	actualT := []interface{}{"3", true, 4}
 	actualMessage := Message{actualOperation, actualT}
 
@@ -24,11 +24,11 @@ func TestCreateMessage(t *testing.T) {
 }
 
 // Test to see if GetOperation returns the correct operation.
-func TestGetOperation(t *testing.T) {
+func TestMessageGetOperation(t *testing.T) {
 	// Setup
 	testMessage := createTestMessage()
 
-	actualOperation := constants.GetRequest
+	actualOperation := GetRequest
 
 	// Get the operation of the message with method.
 	testOperation := testMessage.GetOperation()
@@ -58,7 +58,7 @@ func TestGetBody(t *testing.T) {
 }
 
 func createTestMessage() Message {
-	testOperation := constants.GetRequest
+	testOperation := GetRequest
 	testT := []interface{}{"3", true, 4}
 
 	return CreateMessage(testOperation, testT)

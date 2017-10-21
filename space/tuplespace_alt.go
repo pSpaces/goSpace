@@ -11,28 +11,28 @@ import (
 )
 
 // NewSpaceAlt creates a representation of a new tuple space.
-func NewSpaceAlt(url string) (ptp PointToPoint) {
+func NewSpaceAlt(url string) (ptp PointToPoint, ts TupleSpace) {
 	registerTypes()
 
 	// For now, we only accept port numbers
 	// The specified port number by the user needs to be converted to a string
 	// with the following format ":<port>".
-	ts := TupleSpace{muTuples: new(sync.RWMutex), muWaitingClients: new(sync.Mutex), port: strings.Join([]string{"", url}, ":")}
+	ts = TupleSpace{muTuples: new(sync.RWMutex), muWaitingClients: new(sync.Mutex), port: strings.Join([]string{"", url}, ":")}
 
 	go ts.Listen()
 
 	ptp = CreatePointToPoint("whatever", "localhost", url)
 
-	return ptp
+	return ptp, ts
 }
 
 // NewRemoteSpaceAlt creates a representaiton of a remote tuple space.
-func NewRemoteSpaceAlt(url string) (ptp PointToPoint) {
+func NewRemoteSpaceAlt(url string) (ptp PointToPoint, ts TupleSpace) {
 	registerTypes()
 
 	ptp = CreatePointToPoint("whatever", "localhost", url)
 
-	return ptp
+	return ptp, ts
 }
 
 // registerTypes registers all the types necessary for the implementation.

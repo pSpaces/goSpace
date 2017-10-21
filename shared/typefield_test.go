@@ -7,8 +7,8 @@ import (
 
 // Test to see if typeField is creating correctly.
 func TestCreateTypeField(t *testing.T) {
-	actualField := "String"
-	testField := "String"
+	actualField := "string"
+	testField := reflect.TypeOf("")
 
 	actualTypeField := TypeField{actualField}
 	testTypeField := CreateTypeField(testField)
@@ -23,15 +23,14 @@ func TestCreateTypeField(t *testing.T) {
 
 func TestGetType(t *testing.T) {
 	// Setup
-	actualField := "String"
+	actualField := reflect.TypeOf("")
 	testTypeField := CreateTypeField(actualField)
 
-	// Use getType()
-	testField := testTypeField.getType()
+	testField := testTypeField.GetType()
 
 	fieldsEqual := reflect.DeepEqual(actualField, testField)
 
 	if !fieldsEqual {
-		t.Errorf("getType() gave %+v, should be %+v", testField, actualField)
+		t.Errorf("GetType() gave %+v, should be %+v", testField, actualField)
 	}
 }

@@ -13,7 +13,7 @@ func TestCreateTemplate(t *testing.T) {
 	actualFields[1] = 2
 	actualFields[2] = 3.14
 	actualFields[3] = false
-	actualFields[4] = CreateTypeField("int")
+	actualFields[4] = CreateTypeField(reflect.TypeOf(actualFields[1]))
 
 	testTemplate := createTestTemplate()
 	actualTemplate := Template{actualFields}
@@ -33,7 +33,7 @@ func TestTemplateLength(t *testing.T) {
 
 	// Get lengths
 	actualTemplateLength := 5
-	testTemplateLength := testTemplate.length()
+	testTemplateLength := testTemplate.Length()
 
 	if testTemplateLength != actualTemplateLength {
 		t.Errorf("Length(%+v) == %d, should be %d", testTemplate, testTemplateLength, actualTemplateLength)
@@ -46,14 +46,14 @@ func TestTemplateGetFieldAt(t *testing.T) {
 	testTemplate := createTestTemplate()
 
 	actualFieldAtBool := false
-	testFieldAtBool := testTemplate.getFieldAt(3)
+	testFieldAtBool := testTemplate.GetFieldAt(3)
 
 	if actualFieldAtBool != testFieldAtBool {
 		t.Errorf("GetFieldAt(%d) on template: %+v == %v, should be %v", 3, testTemplate, testFieldAtBool, actualFieldAtBool)
 	}
 
-	actualFieldAtPtr := CreateTypeField("int")
-	testFieldAtPtr := testTemplate.getFieldAt(4)
+	actualFieldAtPtr := CreateTypeField(reflect.TypeOf(0))
+	testFieldAtPtr := testTemplate.GetFieldAt(4)
 
 	fieldsEqual := reflect.DeepEqual(actualFieldAtPtr, testFieldAtPtr)
 
@@ -72,5 +72,5 @@ func createTestTemplate() Template {
 	intPtr := &intVal
 	testFields[4] = intPtr
 
-	return CreateTemplate(testFields)
+	return CreateTemplate(testFields...)
 }

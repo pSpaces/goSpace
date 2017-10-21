@@ -92,7 +92,7 @@ func TestGetResponseChan(t *testing.T) {
 }
 
 // Test to see if operation is returned correctly.
-func TestGetOperation(t *testing.T) {
+func TestWaitingClientGetOperation(t *testing.T) {
 	// Setup
 	testWaitingClient := createTestWaitingClient()
 

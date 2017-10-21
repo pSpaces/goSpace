@@ -7,6 +7,7 @@ import (
 	. "github.com/pspaces/gospace/shared"
 	"log"
 	"net"
+	"strconv"
 	"sync"
 )
 
@@ -19,6 +20,18 @@ type TupleSpace struct {
 	tuples           []Tuple         // Tuples in the tuple space.
 	port             string          // Port number of the tuple space.
 	waitingClients   []WaitingClient // Structure for clients that couldn't initially find a matching tuple.
+}
+
+func CreateTupleSpace(port int) (ts *TupleSpace) {
+	gob.Register(Template{})
+	gob.Register(Tuple{})
+	gob.Register(TypeField{})
+
+	ts = &TupleSpace{muTuples: new(sync.RWMutex), muWaitingClients: new(sync.Mutex), tuples: []Tuple{}, port: strconv.Itoa(port)}
+
+	go ts.Listen()
+
+	return ts
 }
 
 // Size return the number of tuples in the tuple space.

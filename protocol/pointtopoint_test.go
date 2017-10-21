@@ -73,7 +73,7 @@ func TestGetName(t *testing.T) {
 func createTestPointToPoint() PointToPoint {
 	testName := "Name"
 	testIP := "192.168.0.0"
-	testPort := 8080
+	testPort := "8080"
 
 	return CreatePointToPoint(testName, testIP, testPort)
 }

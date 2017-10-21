@@ -36,17 +36,26 @@ type Interstellar interface {
 // Space is a structure for interacting with a space.
 type Space struct {
 	id string
+	ts TupleSpace
 	p  PointToPoint
 }
 
 // NewSpace creates an empty space with the specified URL.
 func NewSpace(url string) Space {
-	return Space{url, NewSpaceAlt(url)}
+	p, ts := NewSpaceAlt(url)
+	return Space{url, ts, p}
 }
 
 // NewRemoteSpace connects to a remote space with the specified URL.
 func NewRemoteSpace(url string) Space {
-	return Space{url, NewRemoteSpaceAlt(url)}
+	p, ts := NewRemoteSpaceAlt(url)
+	return Space{url, ts, p}
+}
+
+// Size returns the size of the space.
+func (s *Space) Size() (sz int) {
+	sz = ((*s).ts).Size()
+	return sz
 }
 
 // Put performs a blocking placement a tuple t into space s.
