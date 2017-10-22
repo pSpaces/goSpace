@@ -11,26 +11,43 @@ import (
 )
 
 // NewSpaceAlt creates a representation of a new tuple space.
-func NewSpaceAlt(url string) (ptp PointToPoint, ts TupleSpace) {
+func NewSpaceAlt(url string) (ptp *PointToPoint, ts *TupleSpace) {
 	registerTypes()
 
-	// For now, we only accept port numbers
-	// The specified port number by the user needs to be converted to a string
-	// with the following format ":<port>".
-	ts = TupleSpace{muTuples: new(sync.RWMutex), muWaitingClients: new(sync.Mutex), port: strings.Join([]string{"", url}, ":")}
+	uri, err := NewSpaceURI(url)
 
-	go ts.Listen()
+	if err == nil {
+		// TODO: This is not the best way of doing it since
+		// TODO: a host can resolve to multiple addresses.
+		// TODO: For now, accept this limitation, and fix it soon.
+		ts = &TupleSpace{muTuples: new(sync.RWMutex), muWaitingClients: new(sync.Mutex), port: strings.Join([]string{"", uri.Port()}, ":")}
 
-	ptp = CreatePointToPoint("whatever", "localhost", url)
+		go ts.Listen()
+
+		ptp = CreatePointToPoint(uri.Space(), "localhost", uri.Port())
+	} else {
+		ts = nil
+		ptp = nil
+	}
 
 	return ptp, ts
 }
 
 // NewRemoteSpaceAlt creates a representaiton of a remote tuple space.
-func NewRemoteSpaceAlt(url string) (ptp PointToPoint, ts TupleSpace) {
+func NewRemoteSpaceAlt(url string) (ptp *PointToPoint, ts *TupleSpace) {
 	registerTypes()
 
-	ptp = CreatePointToPoint("whatever", "localhost", url)
+	uri, err := NewSpaceURI(url)
+
+	if err == nil {
+		// TODO: This is not the best way of doing it since
+		// TODO: a host can resolve to multiple addresses.
+		// TODO: For now, accept this limitation, and fix it soon.
+		ptp = CreatePointToPoint(uri.Space(), uri.Hostname(), uri.Port())
+	} else {
+		ts = nil
+		ptp = nil
+	}
 
 	return ptp, ts
 }
@@ -41,6 +58,7 @@ func registerTypes() {
 	gob.Register(Template{})
 	gob.Register(Tuple{})
 	gob.Register(TypeField{})
+	gob.Register([]interface{}{})
 }
 
 // Put will open a TCP connection to the PointToPoint and send the message,
@@ -147,17 +165,26 @@ func getAndQuery(ptp PointToPoint, operation string, tempFields ...interface{}) 
 		return false
 	}
 
-	tuple, errReceiveMessage := receiveMessageTuple(conn)
+	var tuple Tuple
+	var errReceiveMessage error
+	b := false
+
+	if operation == GetRequest {
+		tuple, errReceiveMessage = receiveMessageTuple(conn)
+	} else if operation == QueryRequest {
+		b, errReceiveMessage = receiveMessageBool(conn)
+	}
 
 	// Error check for receiving response.
 	if errReceiveMessage != nil {
 		fmt.Println("ErrReceiveMessage:", errReceiveMessage)
 		return false
 	}
+
 	tuple.WriteToVariables(tempFields...)
 
 	// Return result.
-	return true
+	return (operation == QueryRequest && b) || (operation == GetRequest)
 }
 
 // GetP will open a TCP connection to the PointToPoint and send the message,
@@ -276,7 +303,7 @@ func establishConnection(ptp PointToPoint) (net.Conn, error) {
 	addr := ptp.GetAddress()
 
 	// Establish a connection to the PointToPoint using TCP to ensure reliability.
-	conn, errDial := net.Dial("tcp", addr)
+	conn, errDial := net.Dial("tcp4", addr)
 
 	return conn, errDial
 }

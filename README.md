@@ -30,9 +30,16 @@ Query(x_1, x_2, ..., x_n)
 QueryP(x_1, x_2, ..., x_n)
 QueryAll(x_1, x_2, ..., x_n)
 ```
-A space can be created by using `NewSpace` for creating a local space, or `NewRemoteSpace` for connecting to a remote space. For example:
+A space can be created by using `NewSpace` for creating a local space, or `NewRemoteSpace` for connecting to a remote space.
+
+To create a space on the localhost, one can do:
 ```go
-spc := NewSpace("8080")
+spc := NewSpace("space")
+```
+
+To connect to a remote space with name `space`, one can do:
+```go
+spc := NewRemoteSpace("tcp://example.com/space")
 ```
 
 All operations act on a `Space` structures and `x_1, x_2, ..., x_n` are terms in a tuple.
@@ -49,6 +56,12 @@ Binding variables can only be passed to `Get*` and `Query*` operations.
 
 ## Space API Specification
 The specification for the pSpace Space API can be found [here](https://github.com/pspaces/Programming-with-Spaces/blob/master/guide.md).
+
+## Limitations
+There are currently some limitations to the implementation:
+ - Only TCP over IPv4 is supported.
+ - Gates and space repositories are not supported yet.
+ - Multiplexing of multiple spaces over a single gate is not supported yet.
 
 ## Examples
 Examples and cases for goSpace can be found [here](https://github.com/pspaces/gospace-examples).

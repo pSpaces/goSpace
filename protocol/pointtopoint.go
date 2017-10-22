@@ -13,10 +13,10 @@ type PointToPoint struct {
 
 // CreatePointToPoint will concatenate the ip and the port to a string to create
 // an address of the receiver. The created PointToPoint is then returned.
-func CreatePointToPoint(name string, ip string, port string) PointToPoint {
+func CreatePointToPoint(name string, ip string, port string) (ptp *PointToPoint) {
 	address := strings.Join([]string{ip, port}, ":")
-	pointToPoint := PointToPoint{name, address}
-	return pointToPoint
+	ptp = &PointToPoint{name, address}
+	return ptp
 }
 
 // ToString will combine the name and address of the PointToPoint in a readable

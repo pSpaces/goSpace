@@ -36,25 +36,27 @@ type Interstellar interface {
 // Space is a structure for interacting with a space.
 type Space struct {
 	id string
-	ts TupleSpace
-	p  PointToPoint
+	ts *TupleSpace
+	p  *PointToPoint
 }
 
-// NewSpace creates an empty space with the specified URL.
-func NewSpace(url string) Space {
+// NewSpace creates an empty space s with the specified URL.
+func NewSpace(url string) (s Space) {
 	p, ts := NewSpaceAlt(url)
-	return Space{url, ts, p}
+	s = Space{url, ts, p}
+	return s
 }
 
-// NewRemoteSpace connects to a remote space with the specified URL.
-func NewRemoteSpace(url string) Space {
+// NewRemoteSpace connects to a remote space rs with the specified URL.
+func NewRemoteSpace(url string) (rs Space) {
 	p, ts := NewRemoteSpaceAlt(url)
-	return Space{url, ts, p}
+	rs = Space{url, ts, p}
+	return rs
 }
 
 // Size returns the size of the space.
 func (s *Space) Size() (sz int) {
-	sz = ((*s).ts).Size()
+	sz = (*s.ts).Size()
 	return sz
 }
 
@@ -73,8 +75,13 @@ func (s *Space) Put(t ...interface{}) (tp Tuple, e error) {
 		result = CreateTuple(nil)
 	}
 
-	tp = result
-	e = NewSpaceError(s, status)
+	e = NewSpaceError(s, CreateTuple(t...), status)
+
+	if e == nil {
+		tp = result
+	} else {
+		tp = CreateTuple(nil)
+	}
 
 	return tp, e
 }
@@ -82,8 +89,8 @@ func (s *Space) Put(t ...interface{}) (tp Tuple, e error) {
 // RawPut performs a blocking placement of a tuple t into space s without any error checking.
 // RawPut returns the implementation result tp and error state e.
 func (s *Space) RawPut(t ...interface{}) (tp interface{}, e interface{}) {
-	e = Put((*s).p, t...)
-	tp = TupleFromTemplate(t...)
+	e = Put(*s.p, t...)
+	tp = CreateTupleFromTemplate(t...)
 	return tp, e
 }
 
@@ -102,8 +109,13 @@ func (s *Space) Get(t ...interface{}) (tp Tuple, e error) {
 		result = CreateTuple(nil)
 	}
 
-	tp = result
-	e = NewSpaceError(s, status)
+	e = NewSpaceError(s, CreateTemplate(t...), status)
+
+	if e == nil {
+		tp = result
+	} else {
+		tp = CreateTuple(nil)
+	}
 
 	return tp, e
 }
@@ -111,8 +123,8 @@ func (s *Space) Get(t ...interface{}) (tp Tuple, e error) {
 // RawGet performs a blocking retrieval a tuple from space s with template t and without any error checking.
 // RawGet returns the implementation result tp and error state e.
 func (s *Space) RawGet(t ...interface{}) (tp interface{}, e interface{}) {
-	e = Get((*s).p, t...)
-	tp = TupleFromTemplate(t...)
+	e = Get(*s.p, t...)
+	tp = CreateTupleFromTemplate(t...)
 	return tp, e
 }
 
@@ -131,8 +143,13 @@ func (s *Space) Query(t ...interface{}) (tp Tuple, e error) {
 		result = CreateTuple(nil)
 	}
 
-	tp = result
-	e = NewSpaceError(s, status)
+	e = NewSpaceError(s, CreateTemplate(t...), status)
+
+	if e == nil {
+		tp = result
+	} else {
+		tp = CreateTuple(nil)
+	}
 
 	return tp, e
 }
@@ -140,8 +157,8 @@ func (s *Space) Query(t ...interface{}) (tp Tuple, e error) {
 // RawQuery performs a blocking query for a tuple from space s with template t and without any error checking.
 // RawQuery returns the implementation result tp and error state e.
 func (s *Space) RawQuery(t ...interface{}) (tp interface{}, e interface{}) {
-	e = Query((*s).p, t)
-	tp = TupleFromTemplate(t...)
+	e = Query(*s.p, t)
+	tp = CreateTupleFromTemplate(t...)
 	return tp, e
 }
 
@@ -160,8 +177,13 @@ func (s *Space) PutP(t ...interface{}) (tp Tuple, e error) {
 		result = CreateTuple(nil)
 	}
 
-	tp = result
-	e = NewSpaceError(s, status)
+	e = NewSpaceError(s, CreateTuple(t...), status)
+
+	if e == nil {
+		tp = result
+	} else {
+		tp = CreateTuple(nil)
+	}
 
 	return tp, e
 }
@@ -169,8 +191,8 @@ func (s *Space) PutP(t ...interface{}) (tp Tuple, e error) {
 // RawPut performs a non-blocking placement of a tuple t into space s without any error checking.
 // RawPut returns the implementation result tp and error state e.
 func (s *Space) RawPutP(t ...interface{}) (tp interface{}, e interface{}) {
-	tp = TupleFromTemplate(t...)
-	e = PutP((*s).p, t...)
+	tp = CreateTupleFromTemplate(t...)
+	e = PutP(*s.p, t...)
 	return tp, e
 }
 
@@ -189,8 +211,13 @@ func (s *Space) GetP(t ...interface{}) (tp Tuple, e error) {
 		result = CreateTuple(nil)
 	}
 
-	tp = result
-	e = NewSpaceError(s, status)
+	e = NewSpaceError(s, CreateTemplate(t...), status)
+
+	if e == nil {
+		tp = result
+	} else {
+		tp = CreateTuple(nil)
+	}
 
 	return tp, e
 }
@@ -198,8 +225,8 @@ func (s *Space) GetP(t ...interface{}) (tp Tuple, e error) {
 // RawGetP performs a non-blocking retrieval a tuple from space s with template t and without any error checking.
 // RawGetP returns the implementation result tp and error state e.
 func (s *Space) RawGetP(t ...interface{}) (tp interface{}, e interface{}) {
-	_, e = GetP((*s).p, t...)
-	tp = TupleFromTemplate(t...)
+	e, _ = GetP(*s.p, t...)
+	tp = CreateTupleFromTemplate(t...)
 	return tp, e
 }
 
@@ -218,8 +245,13 @@ func (s *Space) QueryP(t ...interface{}) (tp Tuple, e error) {
 		result = CreateTuple(nil)
 	}
 
-	tp = result
-	e = NewSpaceError(s, status)
+	e = NewSpaceError(s, CreateTemplate(t...), status)
+
+	if e == nil {
+		tp = result
+	} else {
+		tp = CreateTuple(nil)
+	}
 
 	return tp, e
 }
@@ -227,8 +259,8 @@ func (s *Space) QueryP(t ...interface{}) (tp Tuple, e error) {
 // RawQueryP performs a blocking query for a tuple from space s with template t and without any error checking.
 // RawQueryP returns the implementation result tp and error state e.
 func (s *Space) RawQueryP(t ...interface{}) (tp interface{}, e interface{}) {
-	_, e = QueryP((*s).p, t...)
-	tp = TupleFromTemplate(t...)
+	e, _ = QueryP(*s.p, t...)
+	tp = CreateTupleFromTemplate(t...)
 	return tp, e
 }
 
@@ -247,8 +279,13 @@ func (s *Space) GetAll(t ...interface{}) (ts []Tuple, e error) {
 		result = []Tuple{}
 	}
 
-	ts = result
-	e = NewSpaceError(s, status)
+	e = NewSpaceError(s, CreateTemplate(t...), status)
+
+	if e == nil {
+		ts = result
+	} else {
+		ts = []Tuple{}
+	}
 
 	return ts, e
 }
@@ -256,7 +293,7 @@ func (s *Space) GetAll(t ...interface{}) (ts []Tuple, e error) {
 // RawGetAll performs a non-blocking retrieval for all tuples from space s with template t and without any error checking.
 // RawGetAll returns the implementation result ts and error state e.
 func (s *Space) RawGetAll(t ...interface{}) (ts interface{}, e interface{}) {
-	ts, e = GetAll((*s).p, t...)
+	ts, e = GetAll(*s.p, t...)
 	return ts, e
 }
 
@@ -275,8 +312,13 @@ func (s *Space) QueryAll(t ...interface{}) (ts []Tuple, e error) {
 		result = []Tuple{}
 	}
 
-	ts = result
-	e = NewSpaceError(s, status)
+	e = NewSpaceError(s, CreateTemplate(t...), status)
+
+	if e == nil {
+		ts = result
+	} else {
+		ts = []Tuple{}
+	}
 
 	return ts, e
 }
@@ -284,7 +326,7 @@ func (s *Space) QueryAll(t ...interface{}) (ts []Tuple, e error) {
 // RawQueryAll performs a non-blocking query for all tuples from space s with template t and without any error checking.
 // RawQueryAll returns the implementation result ts and error state e.
 func (s *Space) RawQueryAll(t ...interface{}) (ts interface{}, e interface{}) {
-	ts, e = QueryAll((*s).p, t...)
+	ts, e = QueryAll(*s.p, t...)
 	return ts, e
 }
 
@@ -325,7 +367,7 @@ func (s *Space) InterpretError(state interface{}) (msg string) {
 	return msg
 }
 
-// InterpretError returns a status for an operation that has been succesful given a return state by an operation.
+// InterpretOperation returns a status for an operation that has been succesful given a return state by an operation.
 // The state is given by the implementation and this method maps the returned state to a boolean value.
 // This is an internal method and may change without notice.
 func (s *Space) InterpretOperation(state interface{}) (status bool) {
@@ -338,20 +380,19 @@ func (s *Space) InterpretOperation(state interface{}) (status bool) {
 	return status
 }
 
-// TupleFromTemplate reads a template and returns a new tuple tp.
-// TupleFromTemplate extracts values from any pointers it finds in template t.
-func TupleFromTemplate(t ...interface{}) (tp Tuple) {
-	fields := make([]interface{}, len(t))
-
-	for i, value := range t {
-		if reflect.TypeOf(value).Kind() == reflect.Ptr {
-			fields[i] = (reflect.ValueOf(value).Elem().Interface()).(interface{})
-		} else {
-			fields[i] = value
+// InterpretValue returns a representation of the value that was passed to the operation.
+// The representation for now is a print friendly string value.
+// This is an internal method and may change without notice.
+func (s *Space) InterpretValue(value interface{}) (str string) {
+	if s != nil {
+		if value == nil {
+			str = "nil"
+		} else if reflect.TypeOf(value) == reflect.TypeOf(Tuple{}) {
+			str = value.(Tuple).String()
+		} else if reflect.TypeOf(value) == reflect.TypeOf(Template{}) {
+			str = value.(Template).String()
 		}
 	}
 
-	tp = CreateTuple(fields...)
-
-	return tp
+	return str
 }

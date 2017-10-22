@@ -13,6 +13,7 @@ type SpaceError struct {
 	pkg    string
 	fun    string
 	sid    string
+	val    string
 	sop    bool
 	status interface{}
 }
@@ -30,11 +31,11 @@ var errMsg = map[int]string{
 	SpaceOperationFailed: "could not perform operation on this space",
 }
 
-// NewSpaceError creates a new error given space spc and the return state of the implemented operation.
+// NewSpaceError creates a new error given space spc, a value used in an operation and the return state of the implemented operation.
 // NewSpaceError returns a structure which fulfils the error interface and if an operation error has occured.
 // NewSpaceError returns nil if no operation failure has occured.
-func NewSpaceError(spc *Space, state interface{}) error {
-	var msg, pkg, fun, sid string
+func NewSpaceError(spc *Space, value interface{}, state interface{}) error {
+	var msg, pkg, fun, sid, val string
 	var err error
 	var sop bool
 	var status interface{}
@@ -74,13 +75,25 @@ func NewSpaceError(spc *Space, state interface{}) error {
 			sop = false
 		}
 
+		method = spct.MethodByName("InterpretValue")
+		if method.IsValid() {
+			vals := method.Call([]reflect.Value{reflect.ValueOf(value)})
+			if len(vals) == 1 {
+				val = vals[0].Interface().(string)
+			} else {
+				val = ""
+			}
+		} else {
+			val = ""
+		}
+
 		status = state
 	}
 
 	if sop == true {
 		err = nil
 	} else {
-		err = SpaceError{msg, pkg, fun, sid, sop, status}
+		err = SpaceError{msg, pkg, fun, sid, val, sop, status}
 	}
 
 	return err
@@ -93,8 +106,8 @@ func (e SpaceError) Operation() bool {
 
 // Error prints the error message represented by SpaceError.
 func (e SpaceError) Error() string {
-	sep := "  "
-	return fmt.Sprintf("\n%s%s:\n%s%s%s(%s).%s: %s.", sep, e.pkg, sep, sep, "Space", e.sid, e.fun, e.msg)
+	sep := strings.Repeat(" ", 2)
+	return fmt.Sprintf("\n%s%s:\n%s%s%s(%s).%s%s: %s.", sep, e.pkg, sep, sep, "Space", e.sid, e.fun, e.val, e.msg)
 }
 
 // getCalleInfo determines the package and function names associated to a function call.

@@ -27,6 +27,24 @@ func CreateTuple(fields ...interface{}) Tuple {
 	return tuple
 }
 
+// CreateTupleFromTemplate reads a template and returns a new tuple tp.
+// CreateTupleFromTemplate extracts values from any pointers it finds in template t.
+func CreateTupleFromTemplate(t ...interface{}) (tp Tuple) {
+	fields := make([]interface{}, len(t))
+
+	for i, value := range t {
+		if reflect.TypeOf(value).Kind() == reflect.Ptr {
+			fields[i] = (reflect.ValueOf(value).Elem().Interface()).(interface{})
+		} else {
+			fields[i] = value
+		}
+	}
+
+	tp = CreateTuple(fields...)
+
+	return tp
+}
+
 // Length returns the amount of fields of the tuple.
 func (t *Tuple) Length() int {
 	return len((*t).Fields)
