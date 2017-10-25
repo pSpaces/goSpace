@@ -165,15 +165,7 @@ func getAndQuery(ptp PointToPoint, operation string, tempFields ...interface{}) 
 		return false
 	}
 
-	var tuple Tuple
-	var errReceiveMessage error
-	b := false
-
-	if operation == GetRequest {
-		tuple, errReceiveMessage = receiveMessageTuple(conn)
-	} else if operation == QueryRequest {
-		b, errReceiveMessage = receiveMessageBool(conn)
-	}
+	tuple, errReceiveMessage := receiveMessageTuple(conn)
 
 	// Error check for receiving response.
 	if errReceiveMessage != nil {
@@ -184,7 +176,7 @@ func getAndQuery(ptp PointToPoint, operation string, tempFields ...interface{}) 
 	tuple.WriteToVariables(tempFields...)
 
 	// Return result.
-	return (operation == QueryRequest && b) || (operation == GetRequest)
+	return true
 }
 
 // GetP will open a TCP connection to the PointToPoint and send the message,

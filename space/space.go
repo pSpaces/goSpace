@@ -157,7 +157,7 @@ func (s *Space) Query(t ...interface{}) (tp Tuple, e error) {
 // RawQuery performs a blocking query for a tuple from space s with template t and without any error checking.
 // RawQuery returns the implementation result tp and error state e.
 func (s *Space) RawQuery(t ...interface{}) (tp interface{}, e interface{}) {
-	e = Query(*s.p, t)
+	e = Query(*s.p, t...)
 	tp = CreateTupleFromTemplate(t...)
 	return tp, e
 }
