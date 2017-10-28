@@ -19,9 +19,10 @@ func NewRemoteSpace(name string) Space {
 	return spc.NewRemoteSpace(name)
 }
 
-// SpaceInterface contains all interfaces that can operate on a space.
-type SpaceInterface interface {
+// SpaceFrame contains all interfaces that can operate on a space.
+type SpaceFrame interface {
 	spc.Interspace
+	spc.Interstar
 }
 
 // CreateTuple creates a structure that represents a tuple.
@@ -29,8 +30,8 @@ func CreateTuple(fields ...interface{}) Tuple {
 	return shr.CreateTuple(fields...)
 }
 
-// TupleInterface contains all interfaces that can operate on a tuple.
-type TupleInterface interface {
+// TupleFrame contains all interfaces that can operate on a tuple.
+type TupleFrame interface {
 	shr.Intertuple
 }
 
@@ -39,7 +40,7 @@ func CreateTemplate(fields ...interface{}) Template {
 	return shr.CreateTemplate(fields...)
 }
 
-// TemplateInterface contains all interfaces that can operate on a template.
-type TemplateInterface interface {
+// TemplateFrame contains all interfaces that can operate on a template.
+type TemplateFrame interface {
 	shr.Intertemplate
 }

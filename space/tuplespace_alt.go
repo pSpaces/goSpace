@@ -3,6 +3,7 @@ package space
 import (
 	"encoding/gob"
 	"fmt"
+	"github.com/choleraehyq/gofunctools/functools"
 	. "github.com/pspaces/gospace/protocol"
 	. "github.com/pspaces/gospace/shared"
 	"net"
@@ -237,8 +238,6 @@ func getPAndQueryP(ptp PointToPoint, operation string, tempFields ...interface{}
 // The method is nonblocking and will return all tuples found in the tuple
 // space as well as a bool to denote if there were any errors with the
 // communication.
-// NOTE: tuples is allowed to be an empty list, implying the tuple space was
-// empty.
 func GetAll(ptp PointToPoint, tempFields ...interface{}) ([]Tuple, bool) {
 	return getAllAndQueryAll(ptp, GetAllRequest, tempFields...)
 }
@@ -248,8 +247,6 @@ func GetAll(ptp PointToPoint, tempFields ...interface{}) ([]Tuple, bool) {
 // The method is nonblocking and will return all tuples found in the tuple
 // space as well as a bool to denote if there were any errors with the
 // communication.
-// NOTE: tuples is allowed to be an empty list, implying the tuple space was
-// empty.
 func QueryAll(ptp PointToPoint, tempFields ...interface{}) ([]Tuple, bool) {
 	return getAllAndQueryAll(ptp, QueryAllRequest, tempFields...)
 }
@@ -287,6 +284,76 @@ func getAllAndQueryAll(ptp PointToPoint, operation string, tempFields ...interfa
 
 	// Return result.
 	return tuples, true
+}
+
+// PutAgg will connect to a space and aggregate on matched tuples from the space according to a template.
+// This method is nonblocking and will return a tuple and boolean state to denote if there were any errors
+// with the communication. The tuple returned is the aggregation of tuples in the space.
+// If no tuples are found it will create and put a new tuple from the template itself.
+func PutAgg(ptp PointToPoint, aggFunc interface{}, tempFields ...interface{}) (Tuple, bool) {
+	return putAgg(ptp, aggFunc, tempFields...)
+}
+
+func putAgg(ptp PointToPoint, aggFunc interface{}, tempFields ...interface{}) (Tuple, bool) {
+	var tuples []Tuple
+	var result Tuple
+	var err bool
+
+	tuples, err = getAllAndQueryAll(ptp, GetAllRequest, tempFields...)
+	temp := CreateTemplate(tempFields...)
+
+	if err != false && len(tuples) > 0 {
+		initTuple := temp.NewTuple()
+		aggregate, _ := functools.Reduce(aggFunc, tuples, initTuple)
+		result = aggregate.(Tuple)
+	} else {
+		result = CreateIntrinsicTuple(tempFields...)
+	}
+
+	tupleFields := make([]interface{}, result.Length())
+
+	for i, _ := range tupleFields {
+		tupleFields[i] = result.GetFieldAt(i)
+	}
+
+	err = err && Put(ptp, tupleFields...)
+
+	return result, err
+}
+
+// GetAgg will connect to a space and aggregate on matched tuples from the space.
+// This method is nonblocking and will return a tuple perfomed by the aggregation
+// as well as a boolean state to denote if there were any errors with the communication.
+// The resulting tuple is empty if no matching occurs or the aggregation function can not aggregate the matched tuples.
+func GetAgg(ptp PointToPoint, aggFunc interface{}, tempFields ...interface{}) (Tuple, bool) {
+	return getAggAndQueryAgg(ptp, GetAllRequest, aggFunc, tempFields...)
+}
+
+// QueryAgg will connect to a space and aggregated on matched tuples from the space.
+// which includes the type of operation specified by the user.
+// The method is nonblocking and will return a tuple found by aggregating the matched typles.
+// The resulting tuple is empty if no matching occurs or the aggregation function can not aggregate the matched tuples.
+func QueryAgg(ptp PointToPoint, aggFunc interface{}, tempFields ...interface{}) (Tuple, bool) {
+	return getAggAndQueryAgg(ptp, QueryAllRequest, aggFunc, tempFields...)
+}
+
+func getAggAndQueryAgg(ptp PointToPoint, operation string, aggFunc interface{}, tempFields ...interface{}) (Tuple, bool) {
+	var tuples []Tuple
+	var result Tuple
+	var err bool
+
+	tuples, err = getAllAndQueryAll(ptp, operation, tempFields...)
+
+	if err != false {
+		temp := CreateTemplate(tempFields...)
+		initTuple := temp.NewTuple()
+		aggregate, _ := functools.Reduce(aggFunc, tuples, initTuple)
+		result = aggregate.(Tuple)
+	} else {
+		result = CreateTuple(nil)
+	}
+
+	return result, err
 }
 
 // establishConnection will establish a connection to the PointToPoint ptp and

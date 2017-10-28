@@ -19,6 +19,14 @@ type Interspace interface {
 	QueryAll(template ...interface{}) ([]Tuple, error)
 }
 
+// Interstar defines the internal space aggregation interface.
+// Interstar interface is meant to be used by both external or internal interfaces.
+type Interstar interface {
+	PutAgg(function interface{}, template ...interface{}) (Tuple, error)
+	GetAgg(function interface{}, template ...interface{}) (Tuple, error)
+	QueryAgg(function interface{}, template ...interface{}) (Tuple, error)
+}
+
 // Interstellar defines the internal space interface without any error checking.
 // Interstellar interface is meant primarily for internal usage.
 // This interface can change without any notice.
@@ -31,6 +39,15 @@ type Interstellar interface {
 	RawQueryP(template ...interface{}) (interface{}, interface{})
 	RawGetAll(template ...interface{}) (interface{}, interface{})
 	RawQueryAll(template ...interface{}) (interface{}, interface{})
+}
+
+// Intercellestial defines the internal space aggregation interface without any error checking.
+// Intercellestial interface is meant primarily for internal usage.
+// This interface can change without any notice.
+type Intercellestial interface {
+	RawPutAgg(function interface{}, template ...interface{}) (interface{}, interface{})
+	RawGetAgg(function interface{}, template ...interface{}) (interface{}, interface{})
+	RawQueryAgg(function interface{}, template ...interface{}) (interface{}, interface{})
 }
 
 // Space is a structure for interacting with a space.
@@ -90,7 +107,7 @@ func (s *Space) Put(t ...interface{}) (tp Tuple, e error) {
 // RawPut returns the implementation result tp and error state e.
 func (s *Space) RawPut(t ...interface{}) (tp interface{}, e interface{}) {
 	e = Put(*s.p, t...)
-	tp = CreateTupleFromTemplate(t...)
+	tp = CreateIntrinsicTuple(t...)
 	return tp, e
 }
 
@@ -124,7 +141,7 @@ func (s *Space) Get(t ...interface{}) (tp Tuple, e error) {
 // RawGet returns the implementation result tp and error state e.
 func (s *Space) RawGet(t ...interface{}) (tp interface{}, e interface{}) {
 	e = Get(*s.p, t...)
-	tp = CreateTupleFromTemplate(t...)
+	tp = CreateIntrinsicTuple(t...)
 	return tp, e
 }
 
@@ -158,7 +175,7 @@ func (s *Space) Query(t ...interface{}) (tp Tuple, e error) {
 // RawQuery returns the implementation result tp and error state e.
 func (s *Space) RawQuery(t ...interface{}) (tp interface{}, e interface{}) {
 	e = Query(*s.p, t...)
-	tp = CreateTupleFromTemplate(t...)
+	tp = CreateIntrinsicTuple(t...)
 	return tp, e
 }
 
@@ -191,7 +208,7 @@ func (s *Space) PutP(t ...interface{}) (tp Tuple, e error) {
 // RawPut performs a non-blocking placement of a tuple t into space s without any error checking.
 // RawPut returns the implementation result tp and error state e.
 func (s *Space) RawPutP(t ...interface{}) (tp interface{}, e interface{}) {
-	tp = CreateTupleFromTemplate(t...)
+	tp = CreateIntrinsicTuple(t...)
 	e = PutP(*s.p, t...)
 	return tp, e
 }
@@ -226,7 +243,7 @@ func (s *Space) GetP(t ...interface{}) (tp Tuple, e error) {
 // RawGetP returns the implementation result tp and error state e.
 func (s *Space) RawGetP(t ...interface{}) (tp interface{}, e interface{}) {
 	e, _ = GetP(*s.p, t...)
-	tp = CreateTupleFromTemplate(t...)
+	tp = CreateIntrinsicTuple(t...)
 	return tp, e
 }
 
@@ -260,7 +277,7 @@ func (s *Space) QueryP(t ...interface{}) (tp Tuple, e error) {
 // RawQueryP returns the implementation result tp and error state e.
 func (s *Space) RawQueryP(t ...interface{}) (tp interface{}, e interface{}) {
 	e, _ = QueryP(*s.p, t...)
-	tp = CreateTupleFromTemplate(t...)
+	tp = CreateIntrinsicTuple(t...)
 	return tp, e
 }
 
@@ -328,6 +345,112 @@ func (s *Space) QueryAll(t ...interface{}) (ts []Tuple, e error) {
 func (s *Space) RawQueryAll(t ...interface{}) (ts interface{}, e interface{}) {
 	ts, e = QueryAll(*s.p, t...)
 	return ts, e
+}
+
+// PutAgg performs a non-blocking aggregation placement on all tuples from space s that matches template t.
+// PutAgg uses an aggregation function f to aggregate a pair of tuples into one.
+// PutAgg places either the aggregate tuple, or the intrinsic tuple belonging to a template t if no matching tuples are returned, back into s.
+// PutAgg returns either the aggregate or intrinsic tuple and an error e.
+// Error e contains a structure adhering to the error interface if the operation fails, and nil if no error occured.
+func (s *Space) PutAgg(f interface{}, t ...interface{}) (tp Tuple, e error) {
+	var result Tuple
+	var status interface{} = nil
+
+	if s != nil {
+		rawres, rawerr := (*s).RawPutAgg(f, t...)
+		result = rawres.(Tuple)
+		status = rawerr
+	} else {
+		result = CreateTuple(nil)
+	}
+
+	e = NewSpaceError(s, CreateTemplate(t...), status)
+
+	if e == nil {
+		tp = result
+	} else {
+		tp = CreateTuple(nil)
+	}
+
+	return tp, e
+}
+
+// RawPutAgg performs a non-blocking aggregation retrieval on all tuples from space that match template t and without any error checking.
+// RawPutAgg uses an aggregation function f to aggregate a pair of tuples into one.
+// RawPutAgg returns the implementation result tp and error state e.
+func (s *Space) RawPutAgg(f interface{}, t ...interface{}) (tp interface{}, e interface{}) {
+	tp, e = PutAgg(*s.p, f, t...)
+	return tp, e
+}
+
+// GetAgg performs a non-blocking aggregation retrieval on all tuples from space s that matches template t.
+// GetAgg uses an aggregation function f to aggregate a pair of tuples into one.
+// GetAgg returns an aggregate tuple tp and an error e.
+// Error e contains a structure adhering to the error interface if the operation fails, and nil if no error occured.
+func (s *Space) GetAgg(f interface{}, t ...interface{}) (tp Tuple, e error) {
+	var result Tuple
+	var status interface{} = nil
+
+	if s != nil {
+		rawres, rawerr := (*s).RawGetAgg(f, t...)
+		result = rawres.(Tuple)
+		status = rawerr
+	} else {
+		result = CreateTuple(nil)
+	}
+
+	e = NewSpaceError(s, CreateTemplate(t...), status)
+
+	if e == nil {
+		tp = result
+	} else {
+		tp = CreateTuple(nil)
+	}
+
+	return tp, e
+}
+
+// RawGetAgg performs a non-blocking aggregation retrieval on all tuples from space that match template t and without any error checking.
+// RawGetAgg uses an aggregation function f to aggregate a pair of tuples into one.
+// RawGetAgg returns the implementation result tp and error state e.
+func (s *Space) RawGetAgg(f interface{}, t ...interface{}) (tp interface{}, e interface{}) {
+	tp, e = GetAgg(*s.p, f, t...)
+	return tp, e
+}
+
+// QueryAgg performs a non-blocking aggregation query on all tuples from space s that matches template t.
+// QueryAgg uses an aggregation function f to aggregate a pair of tuples into one.
+// QueryAgg returns an aggregate tuple tp and an error e.
+// Error e contains a structure adhering to the error interface if the operation fails, and nil if no error occured.
+func (s *Space) QueryAgg(f interface{}, t ...interface{}) (tp Tuple, e error) {
+	var result Tuple
+	var status interface{} = nil
+
+	if s != nil {
+		rawres, rawerr := (*s).RawQueryAgg(f, t...)
+		result = rawres.(Tuple)
+		status = rawerr
+	} else {
+		result = CreateTuple(nil)
+	}
+
+	e = NewSpaceError(s, CreateTemplate(t...), status)
+
+	if e == nil {
+		tp = result
+	} else {
+		tp = CreateTuple(nil)
+	}
+
+	return tp, e
+}
+
+// RawQueryAgg performs a non-blocking aggregation query on all tuples from space that match template t and without any error checking.
+// RawQueryAgg uses an aggregation function f to aggregate a pair of tuples into one.
+// RawQueryAgg returns the implementation result tp and error state e.
+func (s *Space) RawQueryAgg(f interface{}, t ...interface{}) (tp interface{}, e interface{}) {
+	tp, e = QueryAgg(*s.p, f, t...)
+	return tp, e
 }
 
 // InterpretError returns an error message msg given a return state by an operation.

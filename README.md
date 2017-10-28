@@ -8,6 +8,8 @@ To get goSpace, do:
 
 ```terminal
 go get -u github.com/pspaces/gospace
+cd $GOPATH/src/github.com/pspaces/gospace
+git checkout aggregation
 ```
 To import goSpace into your project, add:
 
@@ -17,19 +19,9 @@ import (
 )
 ```
 
-## goSpace API
+## Library
 
-The goSpace API follows the Space API Specification. It contains the following operations:
-```go
-Put(x_1, x_2, ..., x_n)
-PutP(x_1, x_2, ..., x_n)
-Get(x_1, x_2, ..., x_n)
-GetP(x_1, x_2, ..., x_n)
-GetAll(x_1, x_2, ..., x_n)
-Query(x_1, x_2, ..., x_n)
-QueryP(x_1, x_2, ..., x_n)
-QueryAll(x_1, x_2, ..., x_n)
-```
+### Usage
 A space can be created by using `NewSpace` for creating a local space, or `NewRemoteSpace` for connecting to a remote space.
 
 To create a space on the localhost, one can do:
@@ -42,7 +34,9 @@ To connect to a remote space with name `space`, one can do:
 spc := NewRemoteSpace("tcp://example.com/space")
 ```
 
-All operations act on a `Space` structures and `x_1, x_2, ..., x_n` are terms in a tuple.
+An operation acts on a `Space` structure and `x_1, x_2, ..., x_n` are terms or fields in a tuple or template.
+
+Certain operations require inclusion of a user defined function `f` which operate on a `Tuple` structure.
 
 Operations such as `Put`, `Get`, and so forth are blocking operations.
 
@@ -54,8 +48,31 @@ Pattern matching can be achieved by passing a binding variable, that is, passing
 
 Binding variables can only be passed to `Get*` and `Query*` operations.
 
-## Space API Specification
-The specification for the pSpace Space API can be found [here](https://github.com/pspaces/Programming-with-Spaces/blob/master/guide.md).
+### Space Library
+goSpace follows the Space Library Specification. It contains the following operations:
+```go
+Put(x_1, x_2, ..., x_n)
+PutP(x_1, x_2, ..., x_n)
+Get(x_1, x_2, ..., x_n)
+GetP(x_1, x_2, ..., x_n)
+GetAll(x_1, x_2, ..., x_n)
+Query(x_1, x_2, ..., x_n)
+QueryP(x_1, x_2, ..., x_n)
+QueryAll(x_1, x_2, ..., x_n)
+```
+Do note that `GetAll` and `QueryAll` are non-blocking operators. Blocking operators may come later.
+
+### Star Library
+goSpace has experimental operators for aggregating tuples in a space. It contains the following operations:
+```go
+PutAgg(f, x_1, x_2, ..., x_n)
+GetAgg(f, x_1, x_2, ..., x_n)
+QueryAgg(f, x_1, x_2, ..., x_n)
+```
+Do note that these operators are non-blocking. Blocking operators may come later.
+
+## Space Library Specification
+The specification for the pSpace Space Library can be found [here](https://github.com/pspaces/Programming-with-Spaces/blob/master/guide.md).
 
 ## Limitations
 There are currently some limitations to the implementation:

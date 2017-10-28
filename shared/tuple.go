@@ -27,9 +27,10 @@ func CreateTuple(fields ...interface{}) Tuple {
 	return tuple
 }
 
-// CreateTupleFromTemplate reads a template and returns a new tuple tp.
-// CreateTupleFromTemplate extracts values from any pointers it finds in template t.
-func CreateTupleFromTemplate(t ...interface{}) (tp Tuple) {
+// CreateIntrinsicTuple creates a intrinsic tuple belonging to template t.
+// CreateIntrinsicTuple initializes according to the template fields in tp by reading of concrete values.
+// If CreateIntrinsicTuple finds a field containing a pointer, this field will be dereferenced and the value read.
+func CreateIntrinsicTuple(t ...interface{}) (tp Tuple) {
 	fields := make([]interface{}, len(t))
 
 	for i, value := range t {
