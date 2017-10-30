@@ -2,5 +2,5 @@ The goSpace Developers:
 
 Alberto Lluch Lafuente <albl@dtu.dk>
 Linas Kaminskas <linaskmnsks@gmail.com>
-Marc Storm Larsen <s144452@student.dtu.dk>
-Marcus Skov Hansen <s144438@student.dtu.dk>
+Marc Storm Larsen <mslarsen1992@gmail.com>
+Marcus Skov Hansen <marcus1x@live.dk>
