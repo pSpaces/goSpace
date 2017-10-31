@@ -65,3 +65,12 @@ There are currently some limitations to the implementation:
 
 ## Examples
 Examples and cases for goSpace can be found [here](https://github.com/pspaces/gospace-examples).
+
+## Contributing
+Want to contribute? See [CONTRIBUTING.md](https://github.com/pspaces/gospace/blob/master/CONTRIBUTING.md).
+
+## Authors
+See [AUTHORS.md](https://github.com/pspaces/gospace/blob/master/AUTHORS.md).
+
+## License
+MIT License. See [LICENSE.md](https://github.com/pspaces/gospace/blob/master/LICENSE.md).
