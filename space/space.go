@@ -1,30 +1,33 @@
 package space
 
 import (
-	. "github.com/pspaces/gospace/protocol"
-	. "github.com/pspaces/gospace/shared"
 	"reflect"
+
+	"github.com/google/uuid"
+	"github.com/pspaces/gospace/container"
+	"github.com/pspaces/gospace/policy"
+	"github.com/pspaces/gospace/protocol"
 )
 
 // Interspace defines the internal space interface.
 // Interspace interface is meant to be used by both external or internal interfaces.
 type Interspace interface {
-	Put(tuple ...interface{}) (Tuple, error)
-	Get(template ...interface{}) (Tuple, error)
-	Query(template ...interface{}) (Tuple, error)
-	PutP(tuple ...interface{}) (Tuple, error)
-	GetP(template ...interface{}) (Tuple, error)
-	QueryP(template ...interface{}) (Tuple, error)
-	GetAll(template ...interface{}) ([]Tuple, error)
-	QueryAll(template ...interface{}) ([]Tuple, error)
+	Put(tuple ...interface{}) (container.Tuple, error)
+	Get(template ...interface{}) (container.Tuple, error)
+	Query(template ...interface{}) (container.Tuple, error)
+	PutP(tuple ...interface{}) (container.Tuple, error)
+	GetP(template ...interface{}) (container.Tuple, error)
+	QueryP(template ...interface{}) (container.Tuple, error)
+	GetAll(template ...interface{}) ([]container.Tuple, error)
+	QueryAll(template ...interface{}) ([]container.Tuple, error)
 }
 
 // Interstar defines the internal space aggregation interface.
 // Interstar interface is meant to be used by both external or internal interfaces.
 type Interstar interface {
-	PutAgg(function interface{}, template ...interface{}) (Tuple, error)
-	GetAgg(function interface{}, template ...interface{}) (Tuple, error)
-	QueryAgg(function interface{}, template ...interface{}) (Tuple, error)
+	PutAgg(function interface{}, template ...interface{}) (container.Tuple, error)
+	GetAgg(function interface{}, template ...interface{}) (container.Tuple, error)
+	QueryAgg(function interface{}, template ...interface{}) (container.Tuple, error)
 }
 
 // Interstellar defines the internal space interface without any error checking.
@@ -54,50 +57,104 @@ type Intercellestial interface {
 type Space struct {
 	id string
 	ts *TupleSpace
-	p  *PointToPoint
+	p  *protocol.PointToPoint
 }
 
 // NewSpace creates an empty space s with the specified URL.
-func NewSpace(url string) (s Space) {
-	p, ts := NewSpaceAlt(url)
-	s = Space{url, ts, p}
+func NewSpace(url string, cp ...*policy.Composable) (s Space) {
+	id := uuid.New()
+	sid, err := id.MarshalText()
+
+	if err == nil {
+		// TODO: This is a workaround. Refactor.
+		s = Space{string(sid), nil, nil}
+		p, ts := NewSpaceAlt(url, cp...)
+		s.ts = ts
+		s.p = p
+	}
+
 	return s
 }
 
 // NewRemoteSpace connects to a remote space rs with the specified URL.
 func NewRemoteSpace(url string) (rs Space) {
-	p, ts := NewRemoteSpaceAlt(url)
-	rs = Space{url, ts, p}
+	id := uuid.New()
+	sid, err := id.MarshalText()
+
+	if err == nil {
+		p, ts := NewRemoteSpaceAlt(url)
+		rs = Space{string(sid), ts, p}
+	}
+
 	return rs
 }
 
-// Size returns the size of the space.
-func (s *Space) Size() (sz int) {
-	sz = (*s.ts).Size()
-	return sz
+// ID returns the identifier for space s.
+// Error e contains a structure adhering to the error interface if the operation fails, and nil if no error occured.
+func (s *Space) ID() (id string, e error) {
+	if s != nil {
+		id = (*s).id
+	}
+
+	e = NewSpaceError(s, id, nil)
+
+	return id, e
+}
+
+// Size retrieves the size of space s at this instant.
+// Size returns the space size or -1 if it was not possible to determine the size at this instant.
+// Error e contains a structure adhering to the error interface if the operation fails, and nil if no error occured.
+func (s *Space) Size() (sz int, e error) {
+	var result int
+	var status interface{}
+
+	if s != nil {
+		rawres, rawerr := (*s).RawSize()
+		result = rawres.(int)
+		status = rawerr
+	} else {
+		result = -1
+	}
+
+	e = NewSpaceError(s, -1, status)
+
+	if e == nil {
+		sz = result
+	} else {
+		sz = -1
+	}
+
+	return sz, e
+}
+
+// RawSize retrieves the size of space s at this instant without any error checking.
+// RawSize returns the implementation result sz and error state e.
+func (s *Space) RawSize() (sz interface{}, e interface{}) {
+	sz, e = Size(*s.p)
+	return sz, e
 }
 
 // Put performs a blocking placement a tuple t into space s.
 // Put returns the original tuple tp and an error e.
 // Error e contains a structure adhering to the error interface if the operation fails, and nil if no error occured.
-func (s *Space) Put(t ...interface{}) (tp Tuple, e error) {
-	var result Tuple
-	var status interface{} = nil
+func (s *Space) Put(t ...interface{}) (tp container.Tuple, e error) {
+	var result container.Tuple
+	var status interface{}
 
 	if s != nil {
 		rawres, rawerr := (*s).RawPut(t...)
-		result = rawres.(Tuple)
+		result = rawres.(container.Tuple)
 		status = rawerr
 	} else {
-		result = CreateTuple(nil)
+		result = container.NewTuple(nil)
 	}
 
-	e = NewSpaceError(s, CreateTuple(t...), status)
+	e = NewSpaceError(s, container.NewTuple(t...), status)
 
 	if e == nil {
 		tp = result
 	} else {
-		tp = CreateTuple(nil)
+		tp = container.NewTuple(nil)
 	}
 
 	return tp, e
@@ -106,32 +163,31 @@ func (s *Space) Put(t ...interface{}) (tp Tuple, e error) {
 // RawPut performs a blocking placement of a tuple t into space s without any error checking.
 // RawPut returns the implementation result tp and error state e.
 func (s *Space) RawPut(t ...interface{}) (tp interface{}, e interface{}) {
-	e = Put(*s.p, t...)
-	tp = CreateIntrinsicTuple(t...)
+	tp, e = Put(*s.p, t...)
 	return tp, e
 }
 
 // Get performs a blocking retrieval for a tuple from space s with template t.
 // Get returns the matched tuple tp and an error e.
 // Error e contains a structure adhering to the error interface if the operation fails, and nil if no error occured.
-func (s *Space) Get(t ...interface{}) (tp Tuple, e error) {
-	var result Tuple
-	var status interface{} = nil
+func (s *Space) Get(t ...interface{}) (tp container.Tuple, e error) {
+	var result container.Tuple
+	var status interface{}
 
 	if s != nil {
 		rawres, rawerr := (*s).RawGet(t...)
-		result = rawres.(Tuple)
+		result = rawres.(container.Tuple)
 		status = rawerr
 	} else {
-		result = CreateTuple(nil)
+		result = container.NewTuple(nil)
 	}
 
-	e = NewSpaceError(s, CreateTemplate(t...), status)
+	e = NewSpaceError(s, container.NewTemplate(t...), status)
 
 	if e == nil {
 		tp = result
 	} else {
-		tp = CreateTuple(nil)
+		tp = container.NewTuple(nil)
 	}
 
 	return tp, e
@@ -140,32 +196,31 @@ func (s *Space) Get(t ...interface{}) (tp Tuple, e error) {
 // RawGet performs a blocking retrieval a tuple from space s with template t and without any error checking.
 // RawGet returns the implementation result tp and error state e.
 func (s *Space) RawGet(t ...interface{}) (tp interface{}, e interface{}) {
-	e = Get(*s.p, t...)
-	tp = CreateIntrinsicTuple(t...)
+	tp, e = Get(*s.p, t...)
 	return tp, e
 }
 
 // Query performs a blocking query for a tuple from space s with template t.
 // Query returns the matched tuple tp and an error e.
 // Error e contains a structure adhering to the error interface if the operation fails, and nil if no error occured.
-func (s *Space) Query(t ...interface{}) (tp Tuple, e error) {
-	var result Tuple
-	var status interface{} = nil
+func (s *Space) Query(t ...interface{}) (tp container.Tuple, e error) {
+	var result container.Tuple
+	var status interface{}
 
 	if s != nil {
 		rawres, rawerr := (*s).RawQuery(t...)
-		result = rawres.(Tuple)
+		result = rawres.(container.Tuple)
 		status = rawerr
 	} else {
-		result = CreateTuple(nil)
+		result = container.NewTuple(nil)
 	}
 
-	e = NewSpaceError(s, CreateTemplate(t...), status)
+	e = NewSpaceError(s, container.NewTemplate(t...), status)
 
 	if e == nil {
 		tp = result
 	} else {
-		tp = CreateTuple(nil)
+		tp = container.NewTuple(nil)
 	}
 
 	return tp, e
@@ -174,66 +229,64 @@ func (s *Space) Query(t ...interface{}) (tp Tuple, e error) {
 // RawQuery performs a blocking query for a tuple from space s with template t and without any error checking.
 // RawQuery returns the implementation result tp and error state e.
 func (s *Space) RawQuery(t ...interface{}) (tp interface{}, e interface{}) {
-	e = Query(*s.p, t...)
-	tp = CreateIntrinsicTuple(t...)
+	tp, e = Query(*s.p, t...)
 	return tp, e
 }
 
 // PutP performs a non-blocking placement a tuple t into space s.
 // PutP returns the original tuple tp and an error e.
 // Error e contains a structure adhering to the error interface if the operation fails, and nil if no error occured.
-func (s *Space) PutP(t ...interface{}) (tp Tuple, e error) {
-	var result Tuple
-	var status interface{} = nil
+func (s *Space) PutP(t ...interface{}) (tp container.Tuple, e error) {
+	var result container.Tuple
+	var status interface{}
 
 	if s != nil {
 		rawres, rawerr := (*s).RawPutP(t...)
-		result = rawres.(Tuple)
+		result = rawres.(container.Tuple)
 		status = rawerr
 	} else {
-		result = CreateTuple(nil)
+		result = container.NewTuple(nil)
 	}
 
-	e = NewSpaceError(s, CreateTuple(t...), status)
+	e = NewSpaceError(s, container.NewTuple(t...), status)
 
 	if e == nil {
 		tp = result
 	} else {
-		tp = CreateTuple(nil)
+		tp = container.NewTuple(nil)
 	}
 
 	return tp, e
 }
 
-// RawPut performs a non-blocking placement of a tuple t into space s without any error checking.
-// RawPut returns the implementation result tp and error state e.
+// RawPutP performs a non-blocking placement of a tuple t into space s without any error checking.
+// RawPutP returns the implementation result tp and error state e.
 func (s *Space) RawPutP(t ...interface{}) (tp interface{}, e interface{}) {
-	tp = CreateIntrinsicTuple(t...)
-	e = PutP(*s.p, t...)
+	tp, e = PutP(*s.p, t...)
 	return tp, e
 }
 
 // GetP performs a non-blocking retrieval for a tuple from space s with template t.
 // GetP returns the matched tuple tp and an error e.
 // Error e contains a structure adhering to the error interface if the operation fails, and nil if no error occured.
-func (s *Space) GetP(t ...interface{}) (tp Tuple, e error) {
-	var result Tuple
-	var status interface{} = nil
+func (s *Space) GetP(t ...interface{}) (tp container.Tuple, e error) {
+	var result container.Tuple
+	var status interface{}
 
 	if s != nil {
 		rawres, rawerr := (*s).RawGetP(t...)
-		result = rawres.(Tuple)
+		result = rawres.(container.Tuple)
 		status = rawerr
 	} else {
-		result = CreateTuple(nil)
+		result = container.NewTuple(nil)
 	}
 
-	e = NewSpaceError(s, CreateTemplate(t...), status)
+	e = NewSpaceError(s, container.NewTemplate(t...), status)
 
 	if e == nil {
 		tp = result
 	} else {
-		tp = CreateTuple(nil)
+		tp = container.NewTuple(nil)
 	}
 
 	return tp, e
@@ -242,32 +295,31 @@ func (s *Space) GetP(t ...interface{}) (tp Tuple, e error) {
 // RawGetP performs a non-blocking retrieval a tuple from space s with template t and without any error checking.
 // RawGetP returns the implementation result tp and error state e.
 func (s *Space) RawGetP(t ...interface{}) (tp interface{}, e interface{}) {
-	e, _ = GetP(*s.p, t...)
-	tp = CreateIntrinsicTuple(t...)
+	tp, e, _ = GetP(*s.p, t...)
 	return tp, e
 }
 
 // QueryP performs a non-blocking query for a tuple from space s with template t.
 // QueryP returns the matched tuple tp and an error e.
 // Error e contains a structure adhering to the error interface if the operation fails, and nil if no error occured.
-func (s *Space) QueryP(t ...interface{}) (tp Tuple, e error) {
-	var result Tuple
-	var status interface{} = nil
+func (s *Space) QueryP(t ...interface{}) (tp container.Tuple, e error) {
+	var result container.Tuple
+	var status interface{}
 
 	if s != nil {
 		rawres, rawerr := (*s).RawQueryP(t...)
-		result = rawres.(Tuple)
+		result = rawres.(container.Tuple)
 		status = rawerr
 	} else {
-		result = CreateTuple(nil)
+		result = container.NewTuple(nil)
 	}
 
-	e = NewSpaceError(s, CreateTemplate(t...), status)
+	e = NewSpaceError(s, container.NewTemplate(t...), status)
 
 	if e == nil {
 		tp = result
 	} else {
-		tp = CreateTuple(nil)
+		tp = container.NewTuple(nil)
 	}
 
 	return tp, e
@@ -276,32 +328,31 @@ func (s *Space) QueryP(t ...interface{}) (tp Tuple, e error) {
 // RawQueryP performs a blocking query for a tuple from space s with template t and without any error checking.
 // RawQueryP returns the implementation result tp and error state e.
 func (s *Space) RawQueryP(t ...interface{}) (tp interface{}, e interface{}) {
-	e, _ = QueryP(*s.p, t...)
-	tp = CreateIntrinsicTuple(t...)
+	tp, e, _ = QueryP(*s.p, t...)
 	return tp, e
 }
 
 // GetAll performs a non-blocking retrieval for all tuples from space s with template t.
 // GetAll returns the matching tuples ts and an error e.
 // Error e contains a structure adhering to the error interface if the operation fails, and nil if no error occured.
-func (s *Space) GetAll(t ...interface{}) (ts []Tuple, e error) {
-	var result []Tuple
-	var status interface{} = nil
+func (s *Space) GetAll(t ...interface{}) (ts []container.Tuple, e error) {
+	var result []container.Tuple
+	var status interface{}
 
 	if s != nil {
 		rawres, rawerr := (*s).RawGetAll(t...)
-		result = rawres.([]Tuple)
+		result = rawres.([]container.Tuple)
 		status = rawerr
 	} else {
-		result = []Tuple{}
+		result = []container.Tuple{}
 	}
 
-	e = NewSpaceError(s, CreateTemplate(t...), status)
+	e = NewSpaceError(s, container.NewTemplate(t...), status)
 
 	if e == nil {
 		ts = result
 	} else {
-		ts = []Tuple{}
+		ts = []container.Tuple{}
 	}
 
 	return ts, e
@@ -317,24 +368,24 @@ func (s *Space) RawGetAll(t ...interface{}) (ts interface{}, e interface{}) {
 // QueryAll performs a non-blocking query for all tuples from space s with template t.
 // QueryAll returns the matching tuples ts and an error e.
 // Error e contains a structure adhering to the error interface if the operation fails, and nil if no error occured.
-func (s *Space) QueryAll(t ...interface{}) (ts []Tuple, e error) {
-	var result []Tuple
-	var status interface{} = nil
+func (s *Space) QueryAll(t ...interface{}) (ts []container.Tuple, e error) {
+	var result []container.Tuple
+	var status interface{}
 
 	if s != nil {
 		rawres, rawerr := (*s).RawQueryAll(t...)
-		result = rawres.([]Tuple)
+		result = rawres.([]container.Tuple)
 		status = rawerr
 	} else {
-		result = []Tuple{}
+		result = []container.Tuple{}
 	}
 
-	e = NewSpaceError(s, CreateTemplate(t...), status)
+	e = NewSpaceError(s, container.NewTemplate(t...), status)
 
 	if e == nil {
 		ts = result
 	} else {
-		ts = []Tuple{}
+		ts = []container.Tuple{}
 	}
 
 	return ts, e
@@ -352,24 +403,24 @@ func (s *Space) RawQueryAll(t ...interface{}) (ts interface{}, e interface{}) {
 // PutAgg places either the aggregate tuple, or the intrinsic tuple belonging to a template t if no matching tuples are returned, back into s.
 // PutAgg returns either the aggregate or intrinsic tuple and an error e.
 // Error e contains a structure adhering to the error interface if the operation fails, and nil if no error occured.
-func (s *Space) PutAgg(f interface{}, t ...interface{}) (tp Tuple, e error) {
-	var result Tuple
-	var status interface{} = nil
+func (s *Space) PutAgg(f interface{}, t ...interface{}) (tp container.Tuple, e error) {
+	var result container.Tuple
+	var status interface{}
 
 	if s != nil {
 		rawres, rawerr := (*s).RawPutAgg(f, t...)
-		result = rawres.(Tuple)
+		result = rawres.(container.Tuple)
 		status = rawerr
 	} else {
-		result = CreateTuple(nil)
+		result = container.NewTuple(nil)
 	}
 
-	e = NewSpaceError(s, CreateTemplate(t...), status)
+	e = NewSpaceError(s, container.NewTemplate(t...), status)
 
 	if e == nil {
 		tp = result
 	} else {
-		tp = CreateTuple(nil)
+		tp = container.NewTuple(nil)
 	}
 
 	return tp, e
@@ -387,24 +438,24 @@ func (s *Space) RawPutAgg(f interface{}, t ...interface{}) (tp interface{}, e in
 // GetAgg uses an aggregation function f to aggregate a pair of tuples into one.
 // GetAgg returns an aggregate tuple tp and an error e.
 // Error e contains a structure adhering to the error interface if the operation fails, and nil if no error occured.
-func (s *Space) GetAgg(f interface{}, t ...interface{}) (tp Tuple, e error) {
-	var result Tuple
-	var status interface{} = nil
+func (s *Space) GetAgg(f interface{}, t ...interface{}) (tp container.Tuple, e error) {
+	var result container.Tuple
+	var status interface{}
 
 	if s != nil {
 		rawres, rawerr := (*s).RawGetAgg(f, t...)
-		result = rawres.(Tuple)
+		result = rawres.(container.Tuple)
 		status = rawerr
 	} else {
-		result = CreateTuple(nil)
+		result = container.NewTuple(nil)
 	}
 
-	e = NewSpaceError(s, CreateTemplate(t...), status)
+	e = NewSpaceError(s, container.NewTemplate(t...), status)
 
 	if e == nil {
 		tp = result
 	} else {
-		tp = CreateTuple(nil)
+		tp = container.NewTuple(nil)
 	}
 
 	return tp, e
@@ -422,24 +473,24 @@ func (s *Space) RawGetAgg(f interface{}, t ...interface{}) (tp interface{}, e in
 // QueryAgg uses an aggregation function f to aggregate a pair of tuples into one.
 // QueryAgg returns an aggregate tuple tp and an error e.
 // Error e contains a structure adhering to the error interface if the operation fails, and nil if no error occured.
-func (s *Space) QueryAgg(f interface{}, t ...interface{}) (tp Tuple, e error) {
-	var result Tuple
-	var status interface{} = nil
+func (s *Space) QueryAgg(f interface{}, t ...interface{}) (tp container.Tuple, e error) {
+	var result container.Tuple
+	var status interface{}
 
 	if s != nil {
 		rawres, rawerr := (*s).RawQueryAgg(f, t...)
-		result = rawres.(Tuple)
+		result = rawres.(container.Tuple)
 		status = rawerr
 	} else {
-		result = CreateTuple(nil)
+		result = container.NewTuple(nil)
 	}
 
-	e = NewSpaceError(s, CreateTemplate(t...), status)
+	e = NewSpaceError(s, container.NewTemplate(t...), status)
 
 	if e == nil {
 		tp = result
 	} else {
-		tp = CreateTuple(nil)
+		tp = container.NewTuple(nil)
 	}
 
 	return tp, e
@@ -510,10 +561,10 @@ func (s *Space) InterpretValue(value interface{}) (str string) {
 	if s != nil {
 		if value == nil {
 			str = "nil"
-		} else if reflect.TypeOf(value) == reflect.TypeOf(Tuple{}) {
-			str = value.(Tuple).String()
-		} else if reflect.TypeOf(value) == reflect.TypeOf(Template{}) {
-			str = value.(Template).String()
+		} else if reflect.TypeOf(value) == reflect.TypeOf(container.Tuple{}) {
+			str = value.(container.Tuple).String()
+		} else if reflect.TypeOf(value) == reflect.TypeOf(container.Template{}) {
+			str = value.(container.Template).String()
 		}
 	}
 

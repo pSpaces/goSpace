@@ -1,4 +1,4 @@
-package shared
+package container
 
 import (
 	"reflect"
@@ -79,7 +79,7 @@ func TestMatchNotSameLength(t *testing.T) {
 	testFields[1] = 2
 	testFields[2] = 3.14
 	testFields[3] = false
-	testTemplateDifferentLength := CreateTemplate(testFields...)
+	testTemplateDifferentLength := NewTemplate(testFields...)
 
 	if testTuple.Match(testTemplateDifferentLength) {
 		t.Errorf("%q.match(%q) == false as length of %q = %d and length of %q = %d", testTuple, testTemplateDifferentLength, testTuple, testTuple.Length(), testTemplateDifferentLength, testTemplateDifferentLength.Length())
@@ -107,7 +107,7 @@ func TestMatchSameLengthTemplateOnlyMatchingTypeFields(t *testing.T) {
 	boolPtr := &boolVal
 	testFields[3] = boolPtr
 	testFields[4] = intPtr
-	testTemplateSameLengthOnlyMatchingTypeFields := CreateTemplate(testFields...)
+	testTemplateSameLengthOnlyMatchingTypeFields := NewTemplate(testFields...)
 
 	if !testTuple.Match(testTemplateSameLengthOnlyMatchingTypeFields) {
 		t.Errorf("%q.match(%q) was expected to be true as the tuple looks like, %q, and the template looks like, %q.", testTuple, testTemplateSameLengthOnlyMatchingTypeFields, testTuple, testTemplateSameLengthOnlyMatchingTypeFields)
@@ -129,7 +129,7 @@ func TestMatchSameLengthTemplateNotMatchingTypeFields(t *testing.T) {
 	testFields[2] = stringPtr
 	testFields[3] = stringPtr
 	testFields[4] = stringPtr
-	testTemplateSameLengthNotMatchingTypeFields := CreateTemplate(testFields...)
+	testTemplateSameLengthNotMatchingTypeFields := NewTemplate(testFields...)
 
 	if testTuple.Match(testTemplateSameLengthNotMatchingTypeFields) {
 		t.Errorf("%q.match(%q) was expected to be true as the tuple looks like, %q, and the template looks like, %q.", testTuple, testTemplateSameLengthNotMatchingTypeFields, testTuple, testTemplateSameLengthNotMatchingTypeFields)
@@ -149,7 +149,7 @@ func TestMatchSameLengthTemplateOnlyMatchingFields(t *testing.T) {
 	testFields[2] = 3.14
 	testFields[3] = false
 	testFields[4] = 991
-	testTemplateSameLengthOnlyMatchingFields := CreateTemplate(testFields...)
+	testTemplateSameLengthOnlyMatchingFields := NewTemplate(testFields...)
 
 	if !testTuple.Match(testTemplateSameLengthOnlyMatchingFields) {
 		t.Errorf("%q.match(%q) was expected to be true as the tuple looks like, %q, and the template looks like, %q.", testTuple, testTemplateSameLengthOnlyMatchingFields, testTuple, testTemplateSameLengthOnlyMatchingFields)
@@ -169,7 +169,7 @@ func TestMatchSameLengthTemplateNotMatchingFields(t *testing.T) {
 	testFields[2] = 3.14
 	testFields[3] = false
 	testFields[4] = 0
-	testTemplateSameLengthNotMatchingFields := CreateTemplate(testFields...)
+	testTemplateSameLengthNotMatchingFields := NewTemplate(testFields...)
 
 	if testTuple.Match(testTemplateSameLengthNotMatchingFields) {
 		t.Errorf("%q.match(%q) was expected to be true as the tuple looks like, %q, and the template looks like, %q.", testTuple, testTemplateSameLengthNotMatchingFields, testTuple, testTemplateSameLengthNotMatchingFields)
@@ -177,7 +177,7 @@ func TestMatchSameLengthTemplateNotMatchingFields(t *testing.T) {
 }
 
 func TestWriteToVariables(t *testing.T) {
-	tuple := CreateTuple([]interface{}{2, "hello"}...)
+	tuple := NewTuple([]interface{}{2, "hello"}...)
 	var i int
 	var s string
 	variables := []interface{}{&i, &s}
@@ -196,5 +196,5 @@ func createTestTuple() Tuple {
 	testFields[3] = false
 	testFields[4] = 991
 
-	return CreateTuple(testFields...)
+	return NewTuple(testFields...)
 }

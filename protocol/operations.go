@@ -1,7 +1,6 @@
 package protocol
 
 // Constants used for the messages.
-// Each constant will take an int value starting from 0 and incrementing by 1.
 const (
 	PutRequest       = "PUT_REQUEST"
 	PutResponse      = "PUT_RESPONSE"
@@ -19,4 +18,12 @@ const (
 	QueryPResponse   = "QUERYP_RESPONSE"
 	QueryAllRequest  = "QUERYALL_REQUEST"
 	QueryAllResponse = "QUERYALL_RESPONSE"
+	QueryAggRequest  = "QUERYAGG_REQUEST"
+	QueryAggResponse = "QUERYAGG_RESPONSE"
+	GetAggRequest    = "GETAGG_REQUEST"
+	GetAggResponse   = "GETAGG_RESPONSE"
+	PutAggRequest    = "PUTAGG_REQUEST"
+	PutAggResponse   = "PUTAGG_RESPONSE"
+	SizeRequest      = "SIZE_REQUEST"
+	SizeResponse     = "SIZE_RESPONSE"
 )
