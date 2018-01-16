@@ -1,9 +1,11 @@
 package space
 
 import (
+	"bytes"
 	"crypto/tls"
 	"encoding/gob"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net"
 	"strconv"
@@ -229,7 +231,7 @@ func (ts *TupleSpace) removeTupleAt(i int) {
 	ts.tuples = ts.tuples[:ts.Size()-1]
 }
 
-// listen will listen and accept all incoming connections. Once a connection has
+// Listen will listen and accept all incoming connections. Once a connection has
 // been established, the connection is passed on to the handler.
 func (ts *TupleSpace) Listen(config *tls.Config) {
 
@@ -251,17 +253,26 @@ func (ts *TupleSpace) Listen(config *tls.Config) {
 
 		// Error check for accepting connection.
 		if errAccept != nil {
+			log.Printf("Following error occured when accepting client with details: %s", errAccept)
 			continue
 		}
 
-		// Pass on the connection to the handler.
-		go ts.handle(conn)
+		// Type cast the net.Conn to *tls.Conn
+		tlsConn, ok := conn.(*tls.Conn)
+		if ok {
+			// Pass on the connection to the handler.
+			go ts.handle(tlsConn)
+		}
+
+		log.Println("An error occured when typecasting net.conn to *tls.Conn.\n",
+			"Server will continue to listen for incoming connections.")
+
 	}
 }
 
 // handle will read and decode the message from the connection.
 // The decoded message will be passed on to the respective method.
-func (ts *TupleSpace) handle(conn net.Conn) {
+func (ts *TupleSpace) handle(conn *tls.Conn) {
 
 	// BEGIN DEBUG
 	//fmt.Println("DEBUG: Connnection received from ", conn.RemoteAddr(), "...")
@@ -285,8 +296,16 @@ func (ts *TupleSpace) handle(conn net.Conn) {
 	// Make sure the connection closes when method returns.
 	defer conn.Close()
 
+	byteArr, errRead := receiveBytesFrom(conn)
+	if errRead != nil {
+		log.Fatal("Following error occured when receiving bytes from the connection: ", errRead)
+	}
+
+	// Create *Reader from the byte array that was received from the connection.
+	reader := bytes.NewReader(byteArr)
+
 	// Create decoder to the connection to receive the message.
-	dec := gob.NewDecoder(conn)
+	dec := gob.NewDecoder(reader)
 
 	// Read the message from the connection through the decoder.
 	var message Message
@@ -507,4 +526,31 @@ func handleRecover() {
 	if error := recover(); error != nil {
 		fmt.Println("Recovered from", error)
 	}
+}
+
+// receiveBytesFrom will copy the bytes from the connection to a bytes.Buffer.
+// This will overcome the issue of not knowing how many bytes is going to be
+// received. This is useful as tuples can be of any length.
+func receiveBytesFrom(conn *tls.Conn) ([]byte, error) {
+
+	byteArr, errReadAll := ioutil.ReadAll(conn)
+	return byteArr, errReadAll
+
+	// Alternative method 1:
+	// - Copy bytes from conn to bytes.buffer.
+	// - Not completely sure if it clears the conn.
+	// var bytesBuffer bytes.Buffer
+	// _, errCopy := io.Copy(&bytesBuffer, conn)
+	// return bytesBuffer, errCopy
+
+	// Alternative 2:
+	// - Use the standard conn.Read function.
+	// - Need to handle the case where the content to read from conn is larger
+	//	than the size of the buffer.
+	// buffer := make([]byte, 1024)
+	// _, errRead := conn.Read(buffer)
+	// if errRead != nil {
+	// 	log.Printf("server: conn: read: %s", errRead)
+	// 	return
+	// }
 }
