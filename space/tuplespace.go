@@ -3,12 +3,13 @@ package space
 import (
 	"encoding/gob"
 	"fmt"
-	. "github.com/pspaces/gospace/protocol"
-	. "github.com/pspaces/gospace/shared"
 	"log"
 	"net"
 	"strconv"
 	"sync"
+
+	. "github.com/pspaces/gospace/protocol"
+	. "github.com/pspaces/gospace/shared"
 )
 
 // TupleSpace contains a set of tuples and it has a mutex lock associated with
