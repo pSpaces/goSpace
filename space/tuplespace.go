@@ -1,6 +1,7 @@
 package space
 
 import (
+	"crypto/tls"
 	"encoding/gob"
 	"fmt"
 	"log"
@@ -23,14 +24,14 @@ type TupleSpace struct {
 	waitingClients   []WaitingClient // Structure for clients that couldn't initially find a matching tuple.
 }
 
-func CreateTupleSpace(port int) (ts *TupleSpace) {
+func CreateTupleSpace(port int, config *tls.Config) (ts *TupleSpace) {
 	gob.Register(Template{})
 	gob.Register(Tuple{})
 	gob.Register(TypeField{})
 
 	ts = &TupleSpace{muTuples: new(sync.RWMutex), muWaitingClients: new(sync.Mutex), tuples: []Tuple{}, port: strconv.Itoa(port)}
 
-	go ts.Listen()
+	go ts.Listen(config)
 
 	return ts
 }
@@ -230,10 +231,10 @@ func (ts *TupleSpace) removeTupleAt(i int) {
 
 // listen will listen and accept all incoming connections. Once a connection has
 // been established, the connection is passed on to the handler.
-func (ts *TupleSpace) Listen() {
+func (ts *TupleSpace) Listen(config *tls.Config) {
 
 	// Create the listener to listen on the tuple space's port and using TCP.
-	listener, errListen := net.Listen("tcp", ts.port)
+	listener, errListen := tls.Listen("tcp", ts.port, config)
 
 	// Error check for creating listener.
 	if errListen != nil {

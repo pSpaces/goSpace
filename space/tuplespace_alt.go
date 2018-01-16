@@ -24,7 +24,7 @@ func NewSpaceAlt(url string, config *tls.Config) (ptp *PointToPoint, ts *TupleSp
 		// TODO: For now, accept this limitation, and fix it soon.
 		ts = &TupleSpace{muTuples: new(sync.RWMutex), muWaitingClients: new(sync.Mutex), port: strings.Join([]string{"", uri.Port()}, ":")}
 
-		go ts.Listen()
+		go ts.Listen(config)
 
 		ptp = CreatePointToPoint(uri.Space(), "localhost", uri.Port())
 	} else {
