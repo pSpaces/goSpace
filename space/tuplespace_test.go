@@ -1,11 +1,12 @@
 package space
 
 import (
-	. "github.com/pspaces/gospace/protocol"
-	. "github.com/pspaces/gospace/shared"
 	"reflect"
 	"sync"
 	"testing"
+
+	. "github.com/pspaces/gospace/protocol"
+	. "github.com/pspaces/gospace/shared"
 )
 
 func TestCreateTupleSpace(t *testing.T) {

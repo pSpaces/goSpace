@@ -1,17 +1,19 @@
 package space
 
 import (
+	"crypto/tls"
 	"encoding/gob"
 	"fmt"
-	. "github.com/pspaces/gospace/protocol"
-	. "github.com/pspaces/gospace/shared"
 	"net"
 	"strings"
 	"sync"
+
+	. "github.com/pspaces/gospace/protocol"
+	. "github.com/pspaces/gospace/shared"
 )
 
 // NewSpaceAlt creates a representation of a new tuple space.
-func NewSpaceAlt(url string) (ptp *PointToPoint, ts *TupleSpace) {
+func NewSpaceAlt(url string, config *tls.Config) (ptp *PointToPoint, ts *TupleSpace) {
 	registerTypes()
 
 	uri, err := NewSpaceURI(url)

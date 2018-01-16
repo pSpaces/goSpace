@@ -1,9 +1,11 @@
 package space
 
 import (
+	"crypto/tls"
+	"reflect"
+
 	. "github.com/pspaces/gospace/protocol"
 	. "github.com/pspaces/gospace/shared"
-	"reflect"
 )
 
 // Interspace defines the internal space interface.
@@ -41,8 +43,8 @@ type Space struct {
 }
 
 // NewSpace creates an empty space s with the specified URL.
-func NewSpace(url string) (s Space) {
-	p, ts := NewSpaceAlt(url)
+func NewSpace(url string, config *tls.Config) (s Space) {
+	p, ts := NewSpaceAlt(url, config)
 	s = Space{url, ts, p}
 	return s
 }
