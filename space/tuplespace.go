@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
-	"net"
 	"strconv"
 	"sync"
 
@@ -361,22 +360,24 @@ func (ts *TupleSpace) handle(conn *tls.Conn) {
 // The method will place the tuple t in the tuple space ts.
 // The method will send a boolean value to the connection conn to tell whether
 // or not the placement succeeded
-func (ts *TupleSpace) handlePut(conn net.Conn, t Tuple) {
+func (ts *TupleSpace) handlePut(conn *tls.Conn, t Tuple) {
 	defer handleRecover()
 
 	readChannel := make(chan bool)
 	go ts.put(&t, readChannel)
 	result := <-readChannel
 
-	enc := gob.NewEncoder(conn)
+	// enc := gob.NewEncoder(conn)
+	//
+	// errEnc := enc.Encode(result)
+	//
+	// // NOTE: What happens here, if the tuple has been placed in the tuple
+	// // space, but something goes wrong in encoding the reponse?
+	// if errEnc != nil {
+	// 	panic("handlePut")
+	// }
 
-	errEnc := enc.Encode(result)
-
-	// NOTE: What happens here, if the tuple has been placed in the tuple
-	// space, but something goes wrong in encoding the reponse?
-	if errEnc != nil {
-		panic("handlePut")
-	}
+	sendResult(conn, result, "handlePut")
 }
 
 // handlePutP is a nonblocking method.
@@ -387,20 +388,22 @@ func (ts *TupleSpace) handlePutP(t Tuple) {
 
 // handleGet is a blocking method.
 // It will find a tuple matching the template temp and return it.
-func (ts *TupleSpace) handleGet(conn net.Conn, temp Template) {
+func (ts *TupleSpace) handleGet(conn *tls.Conn, temp Template) {
 	defer handleRecover()
 
 	readChannel := make(chan *Tuple)
 	go ts.get(temp, readChannel)
 	resultTuplePtr := <-readChannel
 
-	enc := gob.NewEncoder(conn)
+	// enc := gob.NewEncoder(conn)
+	//
+	// errEnc := enc.Encode(*resultTuplePtr)
+	//
+	// if errEnc != nil {
+	// 	panic("handleGet")
+	// }
 
-	errEnc := enc.Encode(*resultTuplePtr)
-
-	if errEnc != nil {
-		panic("handleGet")
-	}
+	sendResult(conn, *resultTuplePtr, "handleGet")
 }
 
 // handleGetP is a nonblocking method.
@@ -408,118 +411,140 @@ func (ts *TupleSpace) handleGet(conn net.Conn, temp Template) {
 // from the tuple space.
 // As it may not find it, the method will send a boolean as well as the tuple
 // to the connection conn.
-func (ts *TupleSpace) handleGetP(conn net.Conn, temp Template) {
+func (ts *TupleSpace) handleGetP(conn *tls.Conn, temp Template) {
 	defer handleRecover()
 
 	readChannel := make(chan *Tuple)
 	go ts.getP(temp, readChannel)
 	resultTuplePtr := <-readChannel
 
-	enc := gob.NewEncoder(conn)
+	// enc := gob.NewEncoder(conn)
+	//
+	// if resultTuplePtr == nil {
+	// 	result := []interface{}{false, Tuple{}}
+	//
+	// 	errEnc := enc.Encode(result)
+	//
+	// 	if errEnc != nil {
+	// 		panic("handleGetP")
+	// 	}
+	// } else {
+	// 	result := []interface{}{true, *resultTuplePtr}
+	//
+	// 	errEnc := enc.Encode(result)
+	//
+	// 	if errEnc != nil {
+	// 		panic("handleGetP")
+	// 	}
+	// }
 
 	if resultTuplePtr == nil {
 		result := []interface{}{false, Tuple{}}
-
-		errEnc := enc.Encode(result)
-
-		if errEnc != nil {
-			panic("handleGetP")
-		}
+		sendResult(conn, result, "handleGetP")
 	} else {
 		result := []interface{}{true, *resultTuplePtr}
-
-		errEnc := enc.Encode(result)
-
-		if errEnc != nil {
-			panic("handleGetP")
-		}
+		sendResult(conn, result, "handleGetP")
 	}
 }
 
 // handleGetAll is a nonblocking method that will remove all tuples from the tuple
 // space and send them in a list through the connection conn.
-func (ts *TupleSpace) handleGetAll(conn net.Conn, temp Template) {
+func (ts *TupleSpace) handleGetAll(conn *tls.Conn, temp Template) {
 	defer handleRecover()
 
 	readChannel := make(chan []Tuple)
 	go ts.getAll(temp, readChannel)
 	tupleList := <-readChannel
 
-	enc := gob.NewEncoder(conn)
+	// enc := gob.NewEncoder(conn)
+	//
+	// errEnc := enc.Encode(tupleList)
+	//
+	// if errEnc != nil {
+	// 	panic("handleGetAll")
+	// }
 
-	errEnc := enc.Encode(tupleList)
-
-	if errEnc != nil {
-		panic("handleGetAll")
-	}
+	sendResult(conn, tupleList, "handleGetAll")
 }
 
 // handleQuery is a blocking method.
 // It will find a tuple matching the template temp.
 // The found tuple will be send to the connection conn.
-func (ts *TupleSpace) handleQuery(conn net.Conn, temp Template) {
+func (ts *TupleSpace) handleQuery(conn *tls.Conn, temp Template) {
 	defer handleRecover()
 
 	readChannel := make(chan *Tuple)
 	go ts.query(temp, readChannel)
 	resultTuplePtr := <-readChannel
 
-	enc := gob.NewEncoder(conn)
+	// enc := gob.NewEncoder(conn)
+	//
+	// errEnc := enc.Encode(*resultTuplePtr)
+	//
+	// if errEnc != nil {
+	// 	panic("handleQuery")
+	// }
 
-	errEnc := enc.Encode(*resultTuplePtr)
-
-	if errEnc != nil {
-		panic("handleQuery")
-	}
+	sendResult(conn, *resultTuplePtr, "handleQuery")
 }
 
 // handleQueryP is a nonblocking method.
 // It will try to find a tuple matching the template temp.
 // As it may not find it, the method returns a boolean as well as the tuple.
-func (ts *TupleSpace) handleQueryP(conn net.Conn, temp Template) {
+func (ts *TupleSpace) handleQueryP(conn *tls.Conn, temp Template) {
 	defer handleRecover()
 
 	readChannel := make(chan *Tuple)
 	go ts.queryP(temp, readChannel)
 	resultTuplePtr := <-readChannel
 
-	enc := gob.NewEncoder(conn)
+	// enc := gob.NewEncoder(conn)
+	//
+	// if resultTuplePtr == nil {
+	// 	result := []interface{}{false, Tuple{}}
+	//
+	// 	errEnc := enc.Encode(result)
+	//
+	// 	if errEnc != nil {
+	// 		panic("handleQueryP")
+	// 	}
+	// } else {
+	// 	result := []interface{}{true, *resultTuplePtr}
+	//
+	// 	errEnc := enc.Encode(result)
+	//
+	// 	if errEnc != nil {
+	// 		panic("handleQueryP")
+	// 	}
+	// }
 
 	if resultTuplePtr == nil {
 		result := []interface{}{false, Tuple{}}
-
-		errEnc := enc.Encode(result)
-
-		if errEnc != nil {
-			panic("handleQueryP")
-		}
+		sendResult(conn, result, "handleQueryP")
 	} else {
 		result := []interface{}{true, *resultTuplePtr}
-
-		errEnc := enc.Encode(result)
-
-		if errEnc != nil {
-			panic("handleQueryP")
-		}
+		sendResult(conn, result, "handleQueryP")
 	}
 }
 
 // handleQueryAll is a blocking method that will return all tuples from the tuple
 // space in a list.
-func (ts *TupleSpace) handleQueryAll(conn net.Conn, temp Template) {
+func (ts *TupleSpace) handleQueryAll(conn *tls.Conn, temp Template) {
 	defer handleRecover()
 
 	readChannel := make(chan []Tuple)
 	go ts.queryAll(temp, readChannel)
 	tupleList := <-readChannel
 
-	enc := gob.NewEncoder(conn)
+	// enc := gob.NewEncoder(conn)
+	//
+	// errEnc := enc.Encode(tupleList)
+	//
+	// if errEnc != nil {
+	// 	panic("handleQueryAll")
+	// }
 
-	errEnc := enc.Encode(tupleList)
-
-	if errEnc != nil {
-		panic("handleQueryAll")
-	}
+	sendResult(conn, tupleList, "handleQueryAll")
 }
 
 func handleRecover() {
@@ -552,5 +577,30 @@ func receiveBytesFrom(conn *tls.Conn) ([]byte, error) {
 	// if errRead != nil {
 	// 	log.Printf("server: conn: read: %s", errRead)
 	// 	return
+	// }
+}
+
+func sendResult(conn *tls.Conn, result interface{}, functionName string) {
+	var bytesBuffer bytes.Buffer
+	enc := gob.NewEncoder(&bytesBuffer)
+
+	errEnc := enc.Encode(result)
+	if errEnc != nil {
+		panic(functionName)
+	}
+
+	_, errWrite := conn.Write(bytesBuffer.Bytes())
+
+	if errWrite != nil {
+		panic(functionName)
+	}
+
+	// Old implementation.
+	// enc := gob.NewEncoder(conn)
+	//
+	// errEnc := enc.Encode(result)
+	//
+	// if errEnc != nil {
+	// 	panic(functionName)
 	// }
 }
