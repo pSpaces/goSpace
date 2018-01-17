@@ -1,21 +1,24 @@
 package protocol
 
 import (
+	"crypto/tls"
 	"strings"
 )
 
 // PointToPoint contains information about the receiver, being a user specified
 // name, the IP address and the port number.
 type PointToPoint struct {
-	name    string // Name of receiver.
-	address string // IP address and port number of receiver separated by ":".
+	name    string      // Name of receiver.
+	address string      // IP address and port number of receiver separated by ":".
+	config  *tls.Config // Config to be used when connecting to the receiver.
+
 }
 
 // CreatePointToPoint will concatenate the ip and the port to a string to create
 // an address of the receiver. The created PointToPoint is then returned.
-func CreatePointToPoint(name string, ip string, port string) (ptp *PointToPoint) {
+func CreatePointToPoint(name string, ip string, port string, config *tls.Config) (ptp *PointToPoint) {
 	address := strings.Join([]string{ip, port}, ":")
-	ptp = &PointToPoint{name, address}
+	ptp = &PointToPoint{name, address, config}
 	return ptp
 }
 
