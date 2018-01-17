@@ -235,6 +235,7 @@ func (ts *TupleSpace) removeTupleAt(i int) {
 func (ts *TupleSpace) Listen(config *tls.Config) {
 
 	// Create the listener to listen on the tuple space's port and using TCP.
+	// TODO: Protocol should be extracted as an argument instead of being static.
 	listener, errListen := tls.Listen("tcp", ts.port, config)
 
 	// Error check for creating listener.
