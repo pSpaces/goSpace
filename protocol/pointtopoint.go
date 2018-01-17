@@ -11,7 +11,6 @@ type PointToPoint struct {
 	name    string      // Name of receiver.
 	address string      // IP address and port number of receiver separated by ":".
 	config  *tls.Config // Config to be used when connecting to the receiver.
-
 }
 
 // CreatePointToPoint will concatenate the ip and the port to a string to create
