@@ -50,8 +50,8 @@ func NewSpace(url string, config *tls.Config) (s Space) {
 }
 
 // NewRemoteSpace connects to a remote space rs with the specified URL.
-func NewRemoteSpace(url string) (rs Space) {
-	p, ts := NewRemoteSpaceAlt(url)
+func NewRemoteSpace(url string, config *tls.Config) (rs Space) {
+	p, ts := NewRemoteSpaceAlt(url, config)
 	rs = Space{url, ts, p}
 	return rs
 }

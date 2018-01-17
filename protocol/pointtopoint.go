@@ -42,3 +42,8 @@ func (ptp *PointToPoint) GetAddress() string {
 func (ptp *PointToPoint) GetName() string {
 	return ptp.name
 }
+
+// GetConfig will return the config of the PointToPoint.
+func (ptp *PointToPoint) GetConfig() *tls.Config {
+	return ptp.config
+}

@@ -1,6 +1,7 @@
 package space
 
 import (
+	"bytes"
 	"crypto/tls"
 	"encoding/gob"
 	"fmt"
@@ -26,7 +27,7 @@ func NewSpaceAlt(url string, config *tls.Config) (ptp *PointToPoint, ts *TupleSp
 
 		go ts.Listen(config)
 
-		ptp = CreatePointToPoint(uri.Space(), "localhost", uri.Port())
+		ptp = CreatePointToPoint(uri.Space(), "localhost", uri.Port(), config)
 	} else {
 		ts = nil
 		ptp = nil
@@ -36,7 +37,7 @@ func NewSpaceAlt(url string, config *tls.Config) (ptp *PointToPoint, ts *TupleSp
 }
 
 // NewRemoteSpaceAlt creates a representaiton of a remote tuple space.
-func NewRemoteSpaceAlt(url string) (ptp *PointToPoint, ts *TupleSpace) {
+func NewRemoteSpaceAlt(url string, config *tls.Config) (ptp *PointToPoint, ts *TupleSpace) {
 	registerTypes()
 
 	uri, err := NewSpaceURI(url)
@@ -45,7 +46,7 @@ func NewRemoteSpaceAlt(url string) (ptp *PointToPoint, ts *TupleSpace) {
 		// TODO: This is not the best way of doing it since
 		// TODO: a host can resolve to multiple addresses.
 		// TODO: For now, accept this limitation, and fix it soon.
-		ptp = CreatePointToPoint(uri.Space(), uri.Hostname(), uri.Port())
+		ptp = CreatePointToPoint(uri.Space(), uri.Hostname(), uri.Port(), config)
 	} else {
 		ts = nil
 		ptp = nil
@@ -293,22 +294,24 @@ func getAllAndQueryAll(ptp PointToPoint, operation string, tempFields ...interfa
 
 // establishConnection will establish a connection to the PointToPoint ptp and
 // return the Conn and error.
-func establishConnection(ptp PointToPoint) (net.Conn, error) {
+func establishConnection(ptp PointToPoint) (*tls.Conn, error) {
 	addr := ptp.GetAddress()
+	config := ptp.GetConfig()
 
 	// Establish a connection to the PointToPoint using TCP to ensure reliability.
-	conn, errDial := net.Dial("tcp4", addr)
+	conn, errDial := tls.Dial("tcp4", addr, config)
 
 	return conn, errDial
 }
 
-func sendMessage(conn net.Conn, operation string, t interface{}) error {
+func sendMessage(conn *tls.Conn, operation string, t interface{}) error {
 	// Create encoder to the connection.
-	enc := gob.NewEncoder(conn)
+	var bytesBuffer bytes.Buffer
+	enc := gob.NewEncoder(&bytesBuffer)
 
 	// Register the type of t for Encode to handle it.
 	gob.Register(t)
-	//registrer typefield to match types
+	// Register typefield to match types
 	gob.Register(TypeField{})
 
 	// Generate the message.
@@ -317,7 +320,13 @@ func sendMessage(conn net.Conn, operation string, t interface{}) error {
 	// Sends the message to the connection through the encoder.
 	errEnc := enc.Encode(message)
 
-	return errEnc
+	if errEnc != nil {
+		return errEnc
+	}
+
+	_, errWrite := conn.Write(bytesBuffer.Bytes())
+
+	return errWrite
 }
 
 func receiveMessageBool(conn net.Conn) (bool, error) {
