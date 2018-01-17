@@ -1,10 +1,11 @@
 package protocol
 
 import (
-	. "github.com/pspaces/gospace/shared"
 	"reflect"
 	"strings"
 	"testing"
+
+	. "github.com/pspaces/gospace/shared"
 )
 
 // Test to see if WaitingClient is creating correct.
