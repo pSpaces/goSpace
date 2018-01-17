@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"encoding/gob"
 	"fmt"
+	"log"
 	"strings"
 	"sync"
 
@@ -329,21 +330,49 @@ func sendMessage(conn *tls.Conn, operation string, t interface{}) error {
 }
 
 func receiveMessageBool(conn *tls.Conn) (bool, error) {
-	// Create decoder to the connection to receive the response.
-	dec := gob.NewDecoder(conn)
+	// Read all bytes from the connection.
+	byteArr, errRead := receiveBytesFrom(conn)
+	if errRead != nil {
+		log.Fatal("Following error occured when receiving bytes from the connection: ", errRead)
+	}
 
-	// Read the response from the connection through the decoder.
+	// Create *Reader from the byte array that was received from the connection.
+	reader := bytes.NewReader(byteArr)
+
+	// Create decoder to the connection to decode the response.
+	dec := gob.NewDecoder(reader)
+
+	// Read the response from the bytes through the decoder.
 	var b bool
 	errDec := dec.Decode(&b)
 
 	return b, errDec
+
+	// Old implementation
+	// // Create decoder to the connection to receive the response.
+	// dec := gob.NewDecoder(conn)
+	//
+	// // Read the response from the connection through the decoder.
+	// var b bool
+	// errDec := dec.Decode(&b)
+	//
+	// return b, errDec
 }
 
 func receiveMessageTuple(conn *tls.Conn) (Tuple, error) {
-	// Create decoder to the connection to receive the response.
-	dec := gob.NewDecoder(conn)
+	// Read all bytes from the connection.
+	byteArr, errRead := receiveBytesFrom(conn)
+	if errRead != nil {
+		log.Fatal("Following error occured when receiving bytes from the connection: ", errRead)
+	}
 
-	// Read the response from the connection through the decoder.
+	// Create *Reader from the byte array that was received from the connection.
+	reader := bytes.NewReader(byteArr)
+
+	// Create decoder to the connection to decode the response.
+	dec := gob.NewDecoder(reader)
+
+	// Read the response from the bytes through the decoder.
 	var tuple Tuple
 	errDec := dec.Decode(&tuple)
 
@@ -351,10 +380,19 @@ func receiveMessageTuple(conn *tls.Conn) (Tuple, error) {
 }
 
 func receiveMessageBoolAndTuple(conn *tls.Conn) (bool, Tuple, error) {
-	// Create decoder to the connection to receive the response.
-	dec := gob.NewDecoder(conn)
+	// Read all bytes from the connection.
+	byteArr, errRead := receiveBytesFrom(conn)
+	if errRead != nil {
+		log.Fatal("Following error occured when receiving bytes from the connection: ", errRead)
+	}
 
-	// Read the response from the connection through the decoder.
+	// Create *Reader from the byte array that was received from the connection.
+	reader := bytes.NewReader(byteArr)
+
+	// Create decoder to the connection to decode the response.
+	dec := gob.NewDecoder(reader)
+
+	// Read the response from the bytes through the decoder.
 	var result []interface{}
 	errDec := dec.Decode(&result)
 
@@ -366,10 +404,19 @@ func receiveMessageBoolAndTuple(conn *tls.Conn) (bool, Tuple, error) {
 }
 
 func receiveMessageTupleList(conn *tls.Conn) ([]Tuple, error) {
-	// Create decoder to the connection to receive the response.
-	dec := gob.NewDecoder(conn)
+	// Read all bytes from the connection.
+	byteArr, errRead := receiveBytesFrom(conn)
+	if errRead != nil {
+		log.Fatal("Following error occured when receiving bytes from the connection: ", errRead)
+	}
 
-	// Read the response from the connection through the decoder.
+	// Create *Reader from the byte array that was received from the connection.
+	reader := bytes.NewReader(byteArr)
+
+	// Create decoder to the connection to decode the response.
+	dec := gob.NewDecoder(reader)
+
+	// Read the response from the bytes through the decoder.
 	var tuples []Tuple
 	errDec := dec.Decode(&tuples)
 
