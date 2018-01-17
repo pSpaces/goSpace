@@ -368,16 +368,6 @@ func (ts *TupleSpace) handlePut(conn *tls.Conn, t Tuple) {
 	go ts.put(&t, readChannel)
 	result := <-readChannel
 
-	// enc := gob.NewEncoder(conn)
-	//
-	// errEnc := enc.Encode(result)
-	//
-	// // NOTE: What happens here, if the tuple has been placed in the tuple
-	// // space, but something goes wrong in encoding the reponse?
-	// if errEnc != nil {
-	// 	panic("handlePut")
-	// }
-
 	sendResult(conn, result, "handlePut")
 }
 
@@ -396,14 +386,6 @@ func (ts *TupleSpace) handleGet(conn *tls.Conn, temp Template) {
 	go ts.get(temp, readChannel)
 	resultTuplePtr := <-readChannel
 
-	// enc := gob.NewEncoder(conn)
-	//
-	// errEnc := enc.Encode(*resultTuplePtr)
-	//
-	// if errEnc != nil {
-	// 	panic("handleGet")
-	// }
-
 	sendResult(conn, *resultTuplePtr, "handleGet")
 }
 
@@ -418,26 +400,6 @@ func (ts *TupleSpace) handleGetP(conn *tls.Conn, temp Template) {
 	readChannel := make(chan *Tuple)
 	go ts.getP(temp, readChannel)
 	resultTuplePtr := <-readChannel
-
-	// enc := gob.NewEncoder(conn)
-	//
-	// if resultTuplePtr == nil {
-	// 	result := []interface{}{false, Tuple{}}
-	//
-	// 	errEnc := enc.Encode(result)
-	//
-	// 	if errEnc != nil {
-	// 		panic("handleGetP")
-	// 	}
-	// } else {
-	// 	result := []interface{}{true, *resultTuplePtr}
-	//
-	// 	errEnc := enc.Encode(result)
-	//
-	// 	if errEnc != nil {
-	// 		panic("handleGetP")
-	// 	}
-	// }
 
 	if resultTuplePtr == nil {
 		result := []interface{}{false, Tuple{}}
@@ -457,14 +419,6 @@ func (ts *TupleSpace) handleGetAll(conn *tls.Conn, temp Template) {
 	go ts.getAll(temp, readChannel)
 	tupleList := <-readChannel
 
-	// enc := gob.NewEncoder(conn)
-	//
-	// errEnc := enc.Encode(tupleList)
-	//
-	// if errEnc != nil {
-	// 	panic("handleGetAll")
-	// }
-
 	sendResult(conn, tupleList, "handleGetAll")
 }
 
@@ -478,14 +432,6 @@ func (ts *TupleSpace) handleQuery(conn *tls.Conn, temp Template) {
 	go ts.query(temp, readChannel)
 	resultTuplePtr := <-readChannel
 
-	// enc := gob.NewEncoder(conn)
-	//
-	// errEnc := enc.Encode(*resultTuplePtr)
-	//
-	// if errEnc != nil {
-	// 	panic("handleQuery")
-	// }
-
 	sendResult(conn, *resultTuplePtr, "handleQuery")
 }
 
@@ -498,26 +444,6 @@ func (ts *TupleSpace) handleQueryP(conn *tls.Conn, temp Template) {
 	readChannel := make(chan *Tuple)
 	go ts.queryP(temp, readChannel)
 	resultTuplePtr := <-readChannel
-
-	// enc := gob.NewEncoder(conn)
-	//
-	// if resultTuplePtr == nil {
-	// 	result := []interface{}{false, Tuple{}}
-	//
-	// 	errEnc := enc.Encode(result)
-	//
-	// 	if errEnc != nil {
-	// 		panic("handleQueryP")
-	// 	}
-	// } else {
-	// 	result := []interface{}{true, *resultTuplePtr}
-	//
-	// 	errEnc := enc.Encode(result)
-	//
-	// 	if errEnc != nil {
-	// 		panic("handleQueryP")
-	// 	}
-	// }
 
 	if resultTuplePtr == nil {
 		result := []interface{}{false, Tuple{}}
@@ -536,14 +462,6 @@ func (ts *TupleSpace) handleQueryAll(conn *tls.Conn, temp Template) {
 	readChannel := make(chan []Tuple)
 	go ts.queryAll(temp, readChannel)
 	tupleList := <-readChannel
-
-	// enc := gob.NewEncoder(conn)
-	//
-	// errEnc := enc.Encode(tupleList)
-	//
-	// if errEnc != nil {
-	// 	panic("handleQueryAll")
-	// }
 
 	sendResult(conn, tupleList, "handleQueryAll")
 }
@@ -595,13 +513,4 @@ func sendResult(conn *tls.Conn, result interface{}, functionName string) {
 	if errWrite != nil {
 		panic(functionName)
 	}
-
-	// Old implementation.
-	// enc := gob.NewEncoder(conn)
-	//
-	// errEnc := enc.Encode(result)
-	//
-	// if errEnc != nil {
-	// 	panic(functionName)
-	// }
 }

@@ -5,7 +5,6 @@ import (
 	"crypto/tls"
 	"encoding/gob"
 	"fmt"
-	"net"
 	"strings"
 	"sync"
 
@@ -329,7 +328,7 @@ func sendMessage(conn *tls.Conn, operation string, t interface{}) error {
 	return errWrite
 }
 
-func receiveMessageBool(conn net.Conn) (bool, error) {
+func receiveMessageBool(conn *tls.Conn) (bool, error) {
 	// Create decoder to the connection to receive the response.
 	dec := gob.NewDecoder(conn)
 
@@ -340,7 +339,7 @@ func receiveMessageBool(conn net.Conn) (bool, error) {
 	return b, errDec
 }
 
-func receiveMessageTuple(conn net.Conn) (Tuple, error) {
+func receiveMessageTuple(conn *tls.Conn) (Tuple, error) {
 	// Create decoder to the connection to receive the response.
 	dec := gob.NewDecoder(conn)
 
@@ -351,7 +350,7 @@ func receiveMessageTuple(conn net.Conn) (Tuple, error) {
 	return tuple, errDec
 }
 
-func receiveMessageBoolAndTuple(conn net.Conn) (bool, Tuple, error) {
+func receiveMessageBoolAndTuple(conn *tls.Conn) (bool, Tuple, error) {
 	// Create decoder to the connection to receive the response.
 	dec := gob.NewDecoder(conn)
 
@@ -366,7 +365,7 @@ func receiveMessageBoolAndTuple(conn net.Conn) (bool, Tuple, error) {
 	return b, tuple, errDec
 }
 
-func receiveMessageTupleList(conn net.Conn) ([]Tuple, error) {
+func receiveMessageTupleList(conn *tls.Conn) ([]Tuple, error) {
 	// Create decoder to the connection to receive the response.
 	dec := gob.NewDecoder(conn)
 
