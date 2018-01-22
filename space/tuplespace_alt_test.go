@@ -1,26 +1,30 @@
 package space
 
-//
-// import (
-// 	"reflect"
-// 	"testing"
-//
-// 	. "github.com/pspaces/gospace/protocol"
-// 	. "github.com/pspaces/gospace/shared"
-// )
-//
-// func TestPutUtilities(t *testing.T) {
-// 	ptp, ts := NewSpaceAlt("9050")
-// 	if !(ts.Size() == 0) {
-// 		t.Errorf("Tuple space is not empty")
-// 	}
-// 	//ptp := CreatePointToPoint("Bookstore", "localhost", "9050")
-// 	Put(*ptp, "hello", false)
-// 	if !(reflect.DeepEqual(CreateTuple([]interface{}{"hello", false}...), ts.tuples[0])) {
-// 		t.Errorf("Tuple space is not empty")
-// 	}
-// }
-//
+import (
+	"crypto/rand"
+	"crypto/tls"
+	"crypto/x509"
+	"io/ioutil"
+	"log"
+	"reflect"
+	"testing"
+
+	//. "github.com/pspaces/gospace/protocol"
+	. "github.com/pspaces/gospace/shared"
+)
+
+func TestPutUtilities(t *testing.T) {
+	ptp, ts := NewSpaceAlt("9050", createTestServerConfig())
+	if !(ts.Size() == 0) {
+		t.Errorf("Tuple space is not empty")
+	}
+	//ptp := CreatePointToPoint("Bookstore", "localhost", "9050")
+	Put(*ptp, "hello", false)
+	if !(reflect.DeepEqual(CreateTuple([]interface{}{"hello", false}...), ts.tuples[0])) {
+		t.Errorf("Tuple space is not empty")
+	}
+}
+
 // func TestQueryAndGetUtilities(t *testing.T) {
 // 	_, ts := NewSpaceAlt("9051")
 // 	if !(ts.Size() == 0) {
@@ -124,3 +128,39 @@ package space
 // 	//fmt.Println(tuplespace.GetAll(ptp, 2, &i))
 // 	//fmt.Println(tuplespace.QueryAll(ptp, 2, 2))
 // }
+
+func createTestServerConfig() *tls.Config {
+	cert, err := tls.LoadX509KeyPair("../test/resources/certificates/server.pem", "../test/resources/certificates/server.key")
+	if err != nil {
+		log.Fatalf("server: loadkeys: %s", err)
+	}
+
+	// create a pool of trusted certs
+	certPool := x509.NewCertPool()
+	clientPemFile, _ := ioutil.ReadFile("../test/resources/certificates/client.pem")
+	certPool.AppendCertsFromPEM(clientPemFile)
+	serverPemFile, _ := ioutil.ReadFile("../test/resources/certificates/server.pem")
+	certPool.AppendCertsFromPEM(serverPemFile)
+
+	config := tls.Config{RootCAs: certPool, Certificates: []tls.Certificate{cert}, ClientAuth: tls.RequireAndVerifyClientCert, ClientCAs: certPool}
+	config.Rand = rand.Reader
+
+	return &config
+}
+
+func createTestClientConfig() *tls.Config {
+	cert, err := tls.LoadX509KeyPair("../test/resources/certificates/client.pem", "../test/resources/certificates/client.key")
+
+	if err != nil {
+		log.Fatalf("client: loadkeys: %s", err)
+	}
+
+	// create a pool of trusted certs
+	certPool := x509.NewCertPool()
+	pemFile, _ := ioutil.ReadFile("../test/resources/certificates/client.pem")
+	certPool.AppendCertsFromPEM(pemFile)
+
+	config := tls.Config{RootCAs: certPool, Certificates: []tls.Certificate{cert}, InsecureSkipVerify: true}
+
+	return &config
+}
