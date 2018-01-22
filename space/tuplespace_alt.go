@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"encoding/gob"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"strings"
 	"sync"
@@ -69,6 +70,7 @@ func registerTypes() {
 // The method returns a boolean to inform if the operation was carried out with
 // success or not.
 func Put(ptp PointToPoint, tupleFields ...interface{}) bool {
+
 	t := CreateTuple(tupleFields...)
 	conn, errDial := establishConnection(ptp)
 
@@ -330,8 +332,24 @@ func sendMessage(conn *tls.Conn, operation string, t interface{}) error {
 }
 
 func receiveMessageBool(conn *tls.Conn) (bool, error) {
+	//
+	// byteArr, errRead := ioutil.ReadAll(conn)
+	// if errRead != nil {
+	// 	log.Fatal("Following error occured when receiving bytes from the connection: ", errRead)
+	// }
+	//
+	// r := bytes.NewReader(byteArr)
+	// dec := gob.NewDecoder(r)
+	//
+	// var m bool
+	// errDec := dec.Decode(&m)
+	//
+	// fmt.Println("Result: ", m)
+	//
+	// return m, errDec
+
 	// Read all bytes from the connection.
-	byteArr, errRead := receiveBytesFrom(conn)
+	byteArr, errRead := receiveResponseBytesFrom(conn)
 	if errRead != nil {
 		log.Fatal("Following error occured when receiving bytes from the connection: ", errRead)
 	}
@@ -361,7 +379,7 @@ func receiveMessageBool(conn *tls.Conn) (bool, error) {
 
 func receiveMessageTuple(conn *tls.Conn) (Tuple, error) {
 	// Read all bytes from the connection.
-	byteArr, errRead := receiveBytesFrom(conn)
+	byteArr, errRead := receiveResponseBytesFrom(conn)
 	if errRead != nil {
 		log.Fatal("Following error occured when receiving bytes from the connection: ", errRead)
 	}
@@ -381,7 +399,7 @@ func receiveMessageTuple(conn *tls.Conn) (Tuple, error) {
 
 func receiveMessageBoolAndTuple(conn *tls.Conn) (bool, Tuple, error) {
 	// Read all bytes from the connection.
-	byteArr, errRead := receiveBytesFrom(conn)
+	byteArr, errRead := receiveResponseBytesFrom(conn)
 	if errRead != nil {
 		log.Fatal("Following error occured when receiving bytes from the connection: ", errRead)
 	}
@@ -405,7 +423,7 @@ func receiveMessageBoolAndTuple(conn *tls.Conn) (bool, Tuple, error) {
 
 func receiveMessageTupleList(conn *tls.Conn) ([]Tuple, error) {
 	// Read all bytes from the connection.
-	byteArr, errRead := receiveBytesFrom(conn)
+	byteArr, errRead := receiveResponseBytesFrom(conn)
 	if errRead != nil {
 		log.Fatal("Following error occured when receiving bytes from the connection: ", errRead)
 	}
@@ -421,4 +439,9 @@ func receiveMessageTupleList(conn *tls.Conn) ([]Tuple, error) {
 	errDec := dec.Decode(&tuples)
 
 	return tuples, errDec
+}
+
+func receiveResponseBytesFrom(conn *tls.Conn) ([]byte, error) {
+	byteArr, errRead := ioutil.ReadAll(conn)
+	return byteArr, errRead
 }

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"net"
 	"strconv"
 	"sync"
 
@@ -257,23 +258,15 @@ func (ts *TupleSpace) Listen(config *tls.Config) {
 			continue
 		}
 
-		// Type cast the net.Conn to *tls.Conn
-		tlsConn, ok := conn.(*tls.Conn)
-		if ok {
-			// Pass on the connection to the handler.
-			go ts.handle(tlsConn)
-		}
+		log.Printf("Accepted the following connection: %s", conn.RemoteAddr())
 
-		log.Println("An error occured when typecasting net.conn to *tls.Conn.\n",
-			"Server will continue to listen for incoming connections.")
-
+		go ts.handle(conn)
 	}
 }
 
 // handle will read and decode the message from the connection.
 // The decoded message will be passed on to the respective method.
-func (ts *TupleSpace) handle(conn *tls.Conn) {
-
+func (ts *TupleSpace) handle(netConn net.Conn) {
 	// BEGIN DEBUG
 	//fmt.Println("DEBUG: Connnection received from ", conn.RemoteAddr(), "...")
 	//time.Sleep(3000 * time.Millisecond)
@@ -294,12 +287,22 @@ func (ts *TupleSpace) handle(conn *tls.Conn) {
 	// END DEBUG
 
 	// Make sure the connection closes when method returns.
-	defer conn.Close()
+	defer netConn.Close()
+
+	// Type cast the net.Conn to *tls.Conn
+	conn, ok := netConn.(*tls.Conn)
+	if !ok {
+		log.Println("An error occured when typecasting net.conn to *tls.Conn.\n",
+			"Server will continue to listen for incoming connections.")
+		return
+	}
 
 	byteArr, errRead := receiveBytesFrom(conn)
 	if errRead != nil {
 		log.Fatal("Following error occured when receiving bytes from the connection: ", errRead)
 	}
+
+	println("Bytes received from conn: ", len(byteArr))
 
 	// Create *Reader from the byte array that was received from the connection.
 	reader := bytes.NewReader(byteArr)
@@ -477,6 +480,9 @@ func handleRecover() {
 // received. This is useful as tuples can be of any length.
 func receiveBytesFrom(conn *tls.Conn) ([]byte, error) {
 
+	// var buf bytes.Buffer
+	// _, errCopy := io.Copy(&buf, conn)
+	// return buf.Bytes(), errCopy
 	byteArr, errReadAll := ioutil.ReadAll(conn)
 	return byteArr, errReadAll
 
@@ -490,13 +496,10 @@ func receiveBytesFrom(conn *tls.Conn) ([]byte, error) {
 	// Alternative 2:
 	// - Use the standard conn.Read function.
 	// - Need to handle the case where the content to read from conn is larger
-	//	than the size of the buffer.
+	// 	than the size of the buffer.
 	// buffer := make([]byte, 1024)
 	// _, errRead := conn.Read(buffer)
-	// if errRead != nil {
-	// 	log.Printf("server: conn: read: %s", errRead)
-	// 	return
-	// }
+	// return buffer, errRead
 }
 
 func sendResult(conn *tls.Conn, result interface{}, functionName string) {
@@ -505,12 +508,14 @@ func sendResult(conn *tls.Conn, result interface{}, functionName string) {
 
 	errEnc := enc.Encode(result)
 	if errEnc != nil {
+		log.Fatalf("Error occured when encoding result: %s", errEnc)
 		panic(functionName)
 	}
 
 	_, errWrite := conn.Write(bytesBuffer.Bytes())
 
 	if errWrite != nil {
+		log.Fatalf("Error occured when writing result: %s", errWrite)
 		panic(functionName)
 	}
 }

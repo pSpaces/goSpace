@@ -6,24 +6,21 @@ import (
 	"crypto/x509"
 	"io/ioutil"
 	"log"
-	"reflect"
-	"testing"
-
 	//. "github.com/pspaces/gospace/protocol"
-	. "github.com/pspaces/gospace/shared"
+	//. "github.com/pspaces/gospace/shared"
 )
 
-func TestPutUtilities(t *testing.T) {
-	ptp, ts := NewSpaceAlt("9050", createTestServerConfig())
-	if !(ts.Size() == 0) {
-		t.Errorf("Tuple space is not empty")
-	}
-	//ptp := CreatePointToPoint("Bookstore", "localhost", "9050")
-	Put(*ptp, "hello", false)
-	if !(reflect.DeepEqual(CreateTuple([]interface{}{"hello", false}...), ts.tuples[0])) {
-		t.Errorf("Tuple space is not empty")
-	}
-}
+// func TestPutUtilities(t *testing.T) {
+// 	ptp, ts := NewSpaceAlt("9050", createTestServerConfig())
+// 	if !(ts.Size() == 0) {
+// 		t.Errorf("Tuple space is not empty")
+// 	}
+// 	//ptp := CreatePointToPoint("Bookstore", "localhost", "9050")
+// 	Put(*ptp, "hello", false)
+// 	if !(reflect.DeepEqual(CreateTuple([]interface{}{"hello", false}...), ts.tuples[0])) {
+// 		t.Errorf("Tuple space is not empty")
+// 	}
+// }
 
 // func TestQueryAndGetUtilities(t *testing.T) {
 // 	_, ts := NewSpaceAlt("9051")
