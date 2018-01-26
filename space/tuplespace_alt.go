@@ -442,6 +442,11 @@ func receiveMessageTupleList(conn *tls.Conn) ([]Tuple, error) {
 }
 
 func receiveResponseBytesFrom(conn *tls.Conn) ([]byte, error) {
+	fmt.Println("receiveResponseBytesFrom")
 	byteArr, errRead := ioutil.ReadAll(conn)
 	return byteArr, errRead
+
+	// buffer := make([]byte, 1024)
+	// _, errRead := conn.Read(buffer)
+	// return buffer, errRead
 }

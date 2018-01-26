@@ -5,7 +5,6 @@ import (
 	"crypto/tls"
 	"encoding/gob"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net"
 	"strconv"
@@ -172,9 +171,11 @@ func (ts *TupleSpace) findTuple(temp Template, remove bool) *Tuple {
 			if remove {
 				ts.removeTupleAt(i)
 			}
+			fmt.Println("Returning tuple")
 			return &t
 		}
 	}
+	fmt.Println("Returning nil")
 	return nil
 }
 
@@ -320,7 +321,7 @@ func (ts *TupleSpace) handle(netConn net.Conn) {
 	}
 
 	operation := message.GetOperation()
-
+	fmt.Println("Received operation: ", operation)
 	switch operation {
 	case PutRequest:
 		// Body of message must be tuple.
@@ -385,10 +386,13 @@ func (ts *TupleSpace) handlePutP(t Tuple) {
 func (ts *TupleSpace) handleGet(conn *tls.Conn, temp Template) {
 	defer handleRecover()
 
+	fmt.Println("Template: ", temp.String())
 	readChannel := make(chan *Tuple)
 	go ts.get(temp, readChannel)
 	resultTuplePtr := <-readChannel
 
+	t := *resultTuplePtr
+	fmt.Println("Result from channel: ", t.String())
 	sendResult(conn, *resultTuplePtr, "handleGet")
 }
 
@@ -483,8 +487,9 @@ func receiveBytesFrom(conn *tls.Conn) ([]byte, error) {
 	// var buf bytes.Buffer
 	// _, errCopy := io.Copy(&buf, conn)
 	// return buf.Bytes(), errCopy
-	byteArr, errReadAll := ioutil.ReadAll(conn)
-	return byteArr, errReadAll
+
+	// byteArr, errReadAll := ioutil.ReadAll(conn)
+	// return byteArr, errReadAll
 
 	// Alternative method 1:
 	// - Copy bytes from conn to bytes.buffer.
@@ -497,9 +502,9 @@ func receiveBytesFrom(conn *tls.Conn) ([]byte, error) {
 	// - Use the standard conn.Read function.
 	// - Need to handle the case where the content to read from conn is larger
 	// 	than the size of the buffer.
-	// buffer := make([]byte, 1024)
-	// _, errRead := conn.Read(buffer)
-	// return buffer, errRead
+	buffer := make([]byte, 1024)
+	_, errRead := conn.Read(buffer)
+	return buffer, errRead
 }
 
 func sendResult(conn *tls.Conn, result interface{}, functionName string) {
