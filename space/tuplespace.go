@@ -171,11 +171,9 @@ func (ts *TupleSpace) findTuple(temp Template, remove bool) *Tuple {
 			if remove {
 				ts.removeTupleAt(i)
 			}
-			fmt.Println("Returning tuple")
 			return &t
 		}
 	}
-	fmt.Println("Returning nil")
 	return nil
 }
 
@@ -303,8 +301,6 @@ func (ts *TupleSpace) handle(netConn net.Conn) {
 		log.Fatal("Following error occured when receiving bytes from the connection: ", errRead)
 	}
 
-	println("Bytes received from conn: ", len(byteArr))
-
 	// Create *Reader from the byte array that was received from the connection.
 	reader := bytes.NewReader(byteArr)
 
@@ -321,7 +317,6 @@ func (ts *TupleSpace) handle(netConn net.Conn) {
 	}
 
 	operation := message.GetOperation()
-	fmt.Println("Received operation: ", operation)
 	switch operation {
 	case PutRequest:
 		// Body of message must be tuple.
@@ -386,7 +381,6 @@ func (ts *TupleSpace) handlePutP(t Tuple) {
 func (ts *TupleSpace) handleGet(conn *tls.Conn, temp Template) {
 	defer handleRecover()
 
-	fmt.Println("Template: ", temp.String())
 	readChannel := make(chan *Tuple)
 	go ts.get(temp, readChannel)
 	resultTuplePtr := <-readChannel
