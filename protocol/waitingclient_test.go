@@ -1,10 +1,11 @@
 package protocol
 
 import (
-	. "github.com/pspaces/gospace/shared"
 	"reflect"
 	"strings"
 	"testing"
+
+	. "github.com/pspaces/gospace/container"
 )
 
 // Test to see if WaitingClient is creating correct.
@@ -17,7 +18,7 @@ func TestCreateWaitingClientGet(t *testing.T) {
 	actualFields[0] = "Field 1"
 	actualChan := make(chan<- *Tuple)
 	actualOperation := GetRequest
-	actualWaitingClient := WaitingClient{CreateTemplate(actualFields), actualChan, actualOperation}
+	actualWaitingClient := WaitingClient{NewTemplate(actualFields), actualChan, actualOperation}
 
 	// Test that the two templates are equal.
 	waitingClientsEqual := true
@@ -41,7 +42,7 @@ func TestCreateWaitingClientQuery(t *testing.T) {
 	testFields[0] = "Field 1"
 	testChan := make(chan<- *Tuple)
 	testBool := false
-	testWaitingClient := CreateWaitingClient(CreateTemplate(testFields), testChan, testBool)
+	testWaitingClient := CreateWaitingClient(NewTemplate(testFields), testChan, testBool)
 
 	// Test that the two templates are equal.
 	operationsEqual := true
@@ -61,7 +62,7 @@ func TestGetTemplate(t *testing.T) {
 
 	actualFields := make([]interface{}, 1)
 	actualFields[0] = "Field 1"
-	actualTemplate := CreateTemplate(actualFields)
+	actualTemplate := NewTemplate(actualFields)
 
 	testTemplate := testWaitingClient.GetTemplate()
 
@@ -110,7 +111,7 @@ func TestWaitingClientGetOperation(t *testing.T) {
 func createTestWaitingClient() WaitingClient {
 	testFields := make([]interface{}, 1)
 	testFields[0] = "Field 1"
-	testTemplate := CreateTemplate(testFields)
+	testTemplate := NewTemplate(testFields)
 
 	testChan := make(chan<- *Tuple)
 

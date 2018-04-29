@@ -1,4 +1,4 @@
-package shared
+package container
 
 import (
 	"reflect"
@@ -13,7 +13,7 @@ func TestCreateTemplate(t *testing.T) {
 	actualFields[1] = 2
 	actualFields[2] = 3.14
 	actualFields[3] = false
-	actualFields[4] = CreateTypeField(reflect.TypeOf(actualFields[1]))
+	actualFields[4] = CreateTypeField(reflect.ValueOf(&actualFields[1]).Elem().Interface())
 
 	testTemplate := createTestTemplate()
 	actualTemplate := Template{actualFields}
@@ -52,7 +52,8 @@ func TestTemplateGetFieldAt(t *testing.T) {
 		t.Errorf("GetFieldAt(%d) on template: %+v == %v, should be %v", 3, testTemplate, testFieldAtBool, actualFieldAtBool)
 	}
 
-	actualFieldAtPtr := CreateTypeField(reflect.TypeOf(0))
+	i := 0
+	actualFieldAtPtr := CreateTypeField(reflect.ValueOf(&i).Elem().Interface())
 	testFieldAtPtr := testTemplate.GetFieldAt(4)
 
 	fieldsEqual := reflect.DeepEqual(actualFieldAtPtr, testFieldAtPtr)
@@ -72,5 +73,5 @@ func createTestTemplate() Template {
 	intPtr := &intVal
 	testFields[4] = intPtr
 
-	return CreateTemplate(testFields...)
+	return NewTemplate(testFields...)
 }
